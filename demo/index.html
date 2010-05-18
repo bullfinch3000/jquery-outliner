@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><html>
+	<title>jquery.bgNestedSortable.js – Demo</title>
+	<link rel="stylesheet" media="all" href="../css/bgNestedSortable.css" />
+</head>
+<body>
+	<table class="nested-sortable">
+		<thead>
+			<tr>
+				<th>Titel</th>
+				<th>Författare</th>
+				<th>Publicerad</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr id="row1" class="has-children level0">
+				<td class="nested-data">Test 1</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row2" class="child-of-row1 level1">
+				<td class="nested-data">Test 2</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row3" class="child-of-row1 has-children level1">
+				<td class="nested-data">Test 3</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row4" class="child-of-row3 level2">
+				<td class="nested-data">Test 4</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row5" class="has-children child-of-row3 level2">
+				<td class="nested-data">Test 5</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row6" class="has-children child-of-row5 level3">
+				<td class="nested-data">Test 6</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row7" class="child-of-row6 level4">
+				<td class="nested-data">Test 7</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<br /><br /><br /><br />
+	
+	<div id="debug-area">
+	</div>
+
+	<!--JavaScript Below--> 
+	<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+		google.load("jquery", "1.4.2");
+		google.load("jqueryui", "1.8.1");
+	// ]]>
+	</script>
+	<script type="text/javascript" src="../src/jquery.bgNestedSortable.js"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+		jQuery(function($) {
+			$('table.nested-sortable').bgNestedSortable();
+		});
+	// ]]>
+	</script>
+</body>
+</html>
