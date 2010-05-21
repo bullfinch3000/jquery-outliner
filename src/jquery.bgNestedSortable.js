@@ -340,11 +340,11 @@
 				break;
 
 			case 'insertBefore':
-				target.addClass('bg-nested-table-droppable-before-hover');
+				// target.addClass('bg-nested-table-droppable-before-hover');
 				break;
 
 			case 'insertAfter':
-				target.addClass('bg-nested-table-droppable-after-hover');
+				// target.addClass('bg-nested-table-droppable-after-hover');
 				break;
 
 			default:
@@ -359,9 +359,8 @@
 	 */
 	
 	function hideDropIndicator(container) {
-		$(container).find('tr')
-			.removeClass('bg-nested-table-droppable-append-hover')
-			.removeClass('bg-nested-table-droppable-before-hover')
-			.removeClass('bg-nested-table-droppable-after-hover');
+		$(container).find('tr').removeClass('bg-nested-table-droppable-append-hover');
+			//.removeClass('bg-nested-table-droppable-before-hover')
+			//.removeClass('bg-nested-table-droppable-after-hover');
 	}
 })(jQuery);
