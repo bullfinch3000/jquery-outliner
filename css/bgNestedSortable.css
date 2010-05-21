@@ -1,13 +1,17 @@
+/* Basic table-styles */
 table {
 	border-collapse: collapse;
 }
 
 table th,
 table td {
+	border-width: 0;
 	text-align: left;
+	padding: 0;
 	width: 200px;
 }
 
+/* Expand/Collapse-link */
 a.expand-collapse {
 	background-color: #ccc;
 	display: block;
@@ -17,6 +21,7 @@ a.expand-collapse {
 	height: 15px;
 }
 
+/* Nesting levels */
 table tr.level0 td.nested-data { padding-left: 0; }
 table tr.level1 td.nested-data { padding-left: 20px; }
 table tr.level2 td.nested-data { padding-left: 40px; }
@@ -27,6 +32,8 @@ table tr.level6 td.nested-data { padding-left: 120px; }
 table tr.level7 td.nested-data { padding-left: 140px; }
 table tr.level8 td.nested-data { padding-left: 160px; }
 
-table tr.bg-nested-table-droppable-append-hover		{ border: 1px dashed #ccc; margin-top: -1px; margin-bottom: -1px; }
-table tr.bg-nested-table-droppable-before-hover		{ border-top: 1px dashed #ccc; margin-top: -1px; }
-table tr.bg-nested-table-droppable-after-hover		{ border-bottom: 1px dashed #ccc; margin-bottom: -1px; }
+/* Draggable element */
+.nested-table-item-dragging table td {}
+
+/* Droppable element */
+table tr.bg-nested-table-droppable-append-hover		{ background-color: #0ff; }

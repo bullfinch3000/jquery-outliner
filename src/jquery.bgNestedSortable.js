@@ -25,12 +25,15 @@
 		
 		this.each(function() {
 			var self = this;
+
 			$(self).data('config', config);
 
 			var draggableConfig = {
 				appendTo:	'body',
 				revert:		'invalid',
 				drag:			function(e, ui) {
+										hideDropIndicator(self);
+
 										var targetRow = $(self).find('.ui-droppable-hover');
 										var offset;
 										var height;
@@ -44,6 +47,11 @@
 										}
 										
 										var dropAction = getDropAction(e.pageY, offset.top, height);
+										
+										if (dropAction && $(self).data('dropAction') && $(self).data('dropAction') != dropAction) {
+											$('#debug-area').html(dropAction).effect("highlight", {color: '#0ff'}, 1000);
+										}
+										
 										showDropIndicator(dropAction, targetRow);
 
 										$(self).data('dropAction', dropAction);
@@ -61,9 +69,7 @@
 				tolerance:		'pointer',
 				activeClass:	'ui-droppable-active',
 				hoverClass:		'ui-droppable-hover',
-				drop:					function(e, ui) {
-												$('#debug-area').html('Action: ' + $(self).data('dropAction') + ' Target: ' + $(self).data('dropTarget').attr('id'));
-												
+				drop:					function(e, ui) {												
 												switch($(self).data('dropAction')) {
 													case 'append':
 														setParentClass(self, ui.draggable);
@@ -72,22 +78,27 @@
 														ui.draggable.remove();
 
 														appendFamily(self, ui.helper, this);
-												
-														ui.helper.remove();
 														break;
 
 													case 'insertBefore':
-														alert('insertBefore ' + $(self).data('dropTarget'));
+														removeFamily(self, ui.draggable);
+														ui.draggable.remove();
+													
+														insertFamilyBefore(self, ui.helper);
 														break;
 
 													case 'insertAfter':
-														alert('insertAfter ' + $(self).data('dropTarget'));
+														removeFamily(self, ui.draggable);
+														ui.draggable.remove();
+													
+														insertFamilyAfter(self, ui.helper);
 														break;
 
 													default:
 														break;
 												}
 												
+												ui.helper.remove();
 												hideDropIndicator(self);
 											}
 			};
@@ -208,6 +219,78 @@
 	}
 	
 	/**
+	 * Private function insertFamilyBefore.
+	 *
+	 * @param container: the containing element
+	 * @param family: the draggable helper object
+	 */
+
+	function insertFamilyBefore(container, family) {
+		var config = $(container).data('config');
+		var target = $(container).data('dropTarget');
+		var targetParent = getParent(container, target);
+
+		if (false == targetParent) {
+			//
+		} else {
+			var targetLevel = getLevel($(targetParent).attr('class'));
+			var firstChildLevel = getLevel(family.find('table tbody')
+				.find('tr:first-child').attr('class'));
+			
+			// Set parent for top-level children
+			family.find('table tbody tr.level' + firstChildLevel).each(function() {
+				setParent(targetParent, this);
+			});
+
+			// Set level for all children
+			family.find('table tbody').children().each(function() {
+				setLevel(targetLevel, firstChildLevel, this);
+			});
+		
+			$(targetParent).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
+			if ( $(targetParent).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
+				$(targetParent).find('td.' + config.dataClass).prepend('<a href="" class="expand-collapse"></a>');
+			}
+		}
+
+		family.find('table tbody').children().insertBefore($(target));
+	}
+	
+	/**
+	 * Private function insertFamilyAfter.
+	 *
+	 * @param container: the containing element
+	 * @param family: the draggable helper object
+	 */
+
+	function insertFamilyAfter(container, family) {
+		var config = $(container).data('config');
+		var target = $(container).data('dropTarget');
+		var targetParent = getParent(container, target);
+
+		var targetLevel = getLevel($(targetParent).attr('class'));
+		var firstChildLevel = getLevel(family.find('table tbody')
+			.find('tr:first-child').attr('class'));
+
+		// Set parent for top-level children
+		family.find('table tbody tr.level' + firstChildLevel).each(function() {
+			setParent(targetParent, this);
+		});
+
+		// Set level for all children
+		family.find('table tbody').children().each(function() {
+			setLevel(targetLevel, firstChildLevel, this);
+		});
+		
+		$(targetParent).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
+		if ( $(targetParent).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
+			$(targetParent).find('td.' + config.dataClass).prepend('<a href="" class="expand-collapse"></a>');
+		}
+
+		family.find('table tbody').children().insertAfter($(target));
+	}
+	
+	/**
 	 * Private function removeFamily. Removes the original table rows of after they
 	 * have been dropped and appended at a different place in the table.
 	 *
@@ -262,19 +345,49 @@
 	 * Private function setParent. Assigns a row the correct parent row
 	 * by class name
 	 *
+	 * @param container: the containing element
+	 * @param child: child object
+	 */
+	
+	function getParent(container, child) {
+		var parentClass = getParentClass(child);
+		var parentId = parentClass.substring(9);
+
+		return (false == parentClass) ? false : $(container).find('#' + parentId);
+	}
+	
+	/**
+	 * Private function setParent. Assigns a row the correct parent row
+	 * by class name
+	 *
 	 * @param parent: parent object
 	 * @param child: child object
 	 */
 	
 	function setParent(parent, child) {
-		var class = $(child).attr('class');
-		var startPos = class.indexOf('child-of-');
-		var endPos = class.indexOf(' ', startPos);
-		var curClass = ( endPos != -1 ) ? class.substring(startPos, endPos)
-																		: class.substring(startPos);
+		var curClass = getParentClass(child);
 
 		$(child).removeClass(curClass);
 		$(child).addClass('child-of-' + $(parent).attr('id'));
+	}
+	
+	/**
+	 * Private function getParentClass.
+	 *
+	 * @param child: child object
+	 */
+	
+	function getParentClass(child) {
+		var class = $(child).attr('class');
+		var startPos = class.indexOf('child-of-');
+		var endPos = class.indexOf(' ', startPos);
+
+		if (-1 == startPos) {
+			return false;
+		}
+
+		return (-1 != endPos) ? class.substring(startPos, endPos)
+													: class.substring(startPos);
 	}
 	
 	/**
@@ -331,8 +444,8 @@
 	 */
 
 	function showDropIndicator(dropAction, target) {
-		target.removeClass('bg-nested-table-droppable-append-hover bg-nested-table-droppable-before-hover bg-nested-table-droppable-after-hover');
-		target.siblings().removeClass('bg-nested-table-droppable-hover bg-nested-table-droppable-before-hover bg-nested-table-droppable-after-hover');
+		target.removeClass('bg-nested-table-droppable-append-hover');
+		target.siblings().removeClass('bg-nested-table-droppable-hover');
 	
 		switch(dropAction) {
 			case 'append':
@@ -340,16 +453,39 @@
 				break;
 
 			case 'insertBefore':
-				// target.addClass('bg-nested-table-droppable-before-hover');
+				showDropIndicatorBar(dropAction, target);
 				break;
 
 			case 'insertAfter':
-				// target.addClass('bg-nested-table-droppable-after-hover');
+				showDropIndicatorBar(dropAction, target);
 				break;
 
 			default:
 				break;
 		}
+	}
+	
+	/**
+	 * Private function showDropIndicatorBar.
+	 *
+	 * @param dropAction: the action to be taken on drop
+	 * @param target: the target droppable
+	 */
+	
+	function showDropIndicatorBar(dropAction, target) {
+		var maxW = parseInt(target.parent('tbody').find('tr:first-child td.nested-data').width());
+		var delta = parseInt(maxW - target.find('td.nested-data').width());
+		
+		var offset = target.find('td.nested-data').offset();
+		var top = ('insertBefore' == dropAction) ? parseInt(offset.top) : parseInt(offset.top + target.find('td.nested-data').height());
+		var left = parseInt(offset.left + delta);
+		
+		var w = parseInt(target.width() - delta);
+
+		$('body').append('<div class="drop-indicator-bar" style="background-color: #0ff; height: 1px; width: '
+												+ w + 'px; position: absolute; top: '
+												+ top + 'px; left: '
+												+ left + 'px;"></div>');
 	}
 	
 	/**
@@ -360,6 +496,7 @@
 	
 	function hideDropIndicator(container) {
 		$(container).find('tr').removeClass('bg-nested-table-droppable-append-hover');
+		$('.drop-indicator-bar').remove();
 			//.removeClass('bg-nested-table-droppable-before-hover')
 			//.removeClass('bg-nested-table-droppable-after-hover');
 	}
