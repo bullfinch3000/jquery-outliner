@@ -4,18 +4,23 @@
 	 * Name: bgNestedSortable
 	 * Author: Henrik Almér for AGoodId
 	 *
-	 * This plugin controls expand/collapse and drag/drop of nested structures
-	 * presented in table form.
+	 * This plugin controls expand/collapse and drag/drop of nested structures presented
+	 * in table form.
 	 *
 	 * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable, jQuery UI Droppable
 	 *
 	 * @param settings: JavaScript object of settings
+	 *
+	 * TODO: Enable dropping at root level
+	 * TODO: Add/remove toggle buttons in function insertAfter and insertBefore
+	 * TODO: Refactor insertAfter, insertBefore and append functions for better code reuse
+	 * TODO: Implement validation to prevent dropping a parent in it's own child or descendant
 	 */
 
 	$.fn.bgNestedSortable = function(settings) {
 		var config = {
 			'tolerance':			1,
-			'interval':				10,
+			'interval':				30,
 			'expandCollapse':	true,
 			'dragAndDrop':		true,
 			'initHidden':			true,
@@ -31,6 +36,7 @@
 			$(self).data('config', config);
 			
 			var lastRun = 0;
+			var lastMousePos = { x: 0, y: 0 };
 			var dropAction = false;
 			var dropTarget = false;
 
@@ -39,6 +45,7 @@
 				revert:		'invalid',
 				revertDuration:		0,
 				drag:			function(e, ui) {
+
 										// Check for throttling
 										var thisRun = new Date().getTime();
 										if(thisRun - lastRun < config.interval)
@@ -46,11 +53,18 @@
       
 										lastRun = thisRun;
 										
+										// Check if mouse position has changed
+										var thisMousePos = { x: e.pageX, y: e.pageY };
+										if ( thisMousePos.x == lastMousePos.x && thisMousePos.y == lastMousePos.y )
+											return;
+										
+										lastMousePos = thisMousePos;
+										
 										/**
-										 * Whenever an element is dragged we need to determine what 
-										 * action to take once the dragging stops. We need to know
-										 * this action in the drag event in order to be able to show
-										 * a correctly positioned drop indicator.
+										 * Whenever an element is dragged we need to determine what action
+										 * to take once the dragging stops. We need to know this action in
+										 * the drag event in order to be able to show a correctly positioned
+										 * drop indicator.
 										 */
 
 										var targetRow = $(self).find('.ui-droppable-hover');
@@ -67,8 +81,8 @@
 											var curDropAction = getDropAction(e.pageY, offset.top, height);
 											
 											/**
-											 * Check if a drop action was found and if so update the
-											 * stored drop action.
+											 * Check if a drop action was found and if so update the stored
+											 * drop action.
 											 */
 											
 											if (curDropAction) {
@@ -97,12 +111,12 @@
 				stop:			function(e, ui) {
 
 										/**
-										 * Because draggables can be dropped between elements, the 
-										 * droppable drop event does not always fire. Therefor we
-										 * need to move the actions that would normally belong to
-										 * a droppable drop event to the draggable stop event. What
-										 * we do here is check if a drop action is set, and if so
-										 * execute the function corresponding to that action.
+										 * Because draggables can be dropped between elements, the droppable
+										 * drop event does not always fire. Therefor we need to move the 
+										 * actions that would normally belong to a droppable drop event to
+										 * the draggable stop event. What we do here is check if a drop 
+										 * action is set, and if so execute the function corresponding to 
+										 * that action.
 										 *
 										 * ui.helper is the clone (visible while dragging).
 										 * e.target is the original draggable.
@@ -146,7 +160,8 @@
 										 * dragged element on screen.
 										 */
 
-										var helper = $('<div class="nested-table-item-dragging"><table></table></div>')
+										var helper = 
+											$('<div class="nested-table-item-dragging"><table></table></div>')
 											.find('table').append($(e.target).closest('tr').clone());
 
 										return getFamily(self, helper, $(e.target).closest('tr')).end();
@@ -269,7 +284,8 @@
 		
 		$(target).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
 		if ( $(target).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
-			$(target).find('td.' + config.dataClass).prepend('<a href="" class="expand-collapse"></a>');
+			$(target).find('td.' + config.dataClass)
+				.prepend('<a href="" class="expand-collapse"></a>');
 		}
 
 		family.find('table tbody').children().insertAfter($(target));
@@ -306,7 +322,8 @@
 		
 			$(targetParent).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
 			if ( $(targetParent).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
-				$(targetParent).find('td.' + config.dataClass).prepend('<a href="" class="expand-collapse"></a>');
+				$(targetParent).find('td.' + config.dataClass)
+					.prepend('<a href="" class="expand-collapse"></a>');
 			}
 		}
 
@@ -341,7 +358,8 @@
 		
 		$(targetParent).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
 		if ( $(targetParent).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
-			$(targetParent).find('td.' + config.dataClass).prepend('<a href="" class="expand-collapse"></a>');
+			$(targetParent).find('td.' + config.dataClass)
+				.prepend('<a href="" class="expand-collapse"></a>');
 		}
 
 		family.find('table tbody').children().insertAfter($(target));
@@ -399,8 +417,8 @@
 	}
 	
 	/**
-	 * Private function setParent. Assigns a row the correct parent row
-	 * by class name
+	 * Private function setParent. Assigns a row the correct parent row by
+	 * class name
 	 *
 	 * @param container: the containing element
 	 * @param child: child object
@@ -414,8 +432,8 @@
 	}
 	
 	/**
-	 * Private function setParent. Assigns a row the correct parent row
-	 * by class name
+	 * Private function setParent. Assigns a row the correct parent row by 
+	 * class name
 	 *
 	 * @param parent: parent object
 	 * @param child: child object
@@ -487,9 +505,14 @@
 										
 		var dropAction = false;
 
-		dropAction = ( mouseY > droppableRange.top && mouseY < droppableRange.bottom )	? 'append'				: dropAction;
-		dropAction = ( mouseY > topRange.top && mouseY < topRange.bottom )							? 'insertBefore'	: dropAction;
-		dropAction = ( mouseY > bottomRange.top && mouseY < bottomRange.bottom )				? 'insertAfter'		: dropAction;
+		dropAction = ( mouseY > droppableRange.top && mouseY < droppableRange.bottom )
+										? 'append' : dropAction;
+
+		dropAction = ( mouseY > topRange.top && mouseY < topRange.bottom )
+										? 'insertBefore' : dropAction;
+
+		dropAction = ( mouseY > bottomRange.top && mouseY < bottomRange.bottom )
+										? 'insertAfter' : dropAction;
 		
 		return dropAction;
 	}
@@ -535,12 +558,16 @@
 		var delta = parseInt(maxW - target.find('td.nested-data').width());
 		
 		var offset = target.find('td.nested-data').offset();
-		var top = ('insertBefore' == dropAction) ? parseInt(offset.top) : parseInt(offset.top + target.find('td.nested-data').height());
+
+		var top = ('insertBefore' == dropAction)
+								? parseInt(offset.top)
+								: parseInt(offset.top + target.find('td.nested-data').height());
+
 		var left = parseInt(offset.left + delta);
 		
 		var w = parseInt(target.width() - delta);
 
-		$('body').append('<div class="drop-indicator-bar" style="background-color: #0ff; height: 1px; width: '
+		$('body').append('<div class="drop-indicator-bar" style="height: 1px; width: '
 												+ w + 'px; position: absolute; top: '
 												+ top + 'px; left: '
 												+ left + 'px;"></div>');
@@ -560,8 +587,8 @@
 	}
 	
 	/**
-	 * Private function getDistance. Gets the distance from
-	 * the mouse cursor to the targets edges.
+	 * Private function getDistance. Gets the distance from the mouse cursor
+	 * to the targets edges.
 	 *
 	 * @param mouseX: mouse x position
 	 * @param mouseY: mouse y position
@@ -571,14 +598,14 @@
 	function getDistance(mouseX, mouseY, target) {
 		var center = getCenter(target);
 		var vector = { x: Math.abs(mouseX-center.x), y: Math.abs(mouseY-center.y) };
-		var edgeDistance = { x: vector.x - (target.width() / 2), y: vector.y - (target.height() / 2) };
+		var edgeDistance = {	x: vector.x - (target.width() / 2),
+													y: vector.y - (target.height() / 2) };
 
 		return Math.max(edgeDistance.x, edgeDistance.y);
 	}
 	
 	/**
-	 * Private function getCenter. Gets the x and y of
-	 * an objects center
+	 * Private function getCenter. Gets the x and y of an objects center
 	 *
 	 * @param target: the target object
 	 */
@@ -591,22 +618,4 @@
 			y:offset.top + ($(target).height() / 2)
 		}
 	}
-	
-	
-	function print_r(theObj) {
-		if(theObj.constructor == Array || theObj.constructor == Object) {
-			document.write("<ul>")
-			for(var p in theObj){
-				if(theObj[p].constructor == Array || theObj[p].constructor == Object) {
-					document.write("<li>["+p+"] => "+typeof(theObj)+"</li>");
-					document.write("<ul>")
-					print_r(theObj[p]);
-					document.write("</ul>")
-				} else {
-					document.write("<li>["+p+"] => "+theObj[p]+"</li>");
-				}
-			}
-	  	document.write("</ul>")
-  	}
-	} 
 })(jQuery);

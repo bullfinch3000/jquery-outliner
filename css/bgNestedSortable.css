@@ -37,3 +37,6 @@ table tr.level8 td.nested-data { padding-left: 160px; }
 
 /* Droppable element */
 table tr.bg-nested-table-droppable-append-hover		{ background-color: #0ff; }
+
+/* Drop indicator bar */
+.drop-indicator-bar { background-color: #0ff; }
