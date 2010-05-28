@@ -14,6 +14,8 @@
 
 	$.fn.bgNestedSortable = function(settings) {
 		var config = {
+			'tolerance':			1,
+			'interval':				10,
 			'expandCollapse':	true,
 			'dragAndDrop':		true,
 			'initHidden':			true,
@@ -27,37 +29,123 @@
 			var self = this;
 
 			$(self).data('config', config);
+			
+			var lastRun = 0;
+			var dropAction = false;
+			var dropTarget = false;
 
 			var draggableConfig = {
 				appendTo:	'body',
 				revert:		'invalid',
+				revertDuration:		0,
 				drag:			function(e, ui) {
-										hideDropIndicator(self);
+										// Check for throttling
+										var thisRun = new Date().getTime();
+										if(thisRun - lastRun < config.interval)
+											return;
+      
+										lastRun = thisRun;
+										
+										/**
+										 * Whenever an element is dragged we need to determine what 
+										 * action to take once the dragging stops. We need to know
+										 * this action in the drag event in order to be able to show
+										 * a correctly positioned drop indicator.
+										 */
 
 										var targetRow = $(self).find('.ui-droppable-hover');
+										var distance = 0;
 										var offset;
 										var height;
 
 										if (targetRow.length > 0) {
+											var distance = getDistance(e.pageX, e.pageY, targetRow);
+										
 											offset = targetRow.offset();
 											height = targetRow.height();
-										} else {
-											offset = {top: 0, left: 0};
-											height = 0;
-										}
-										
-										var dropAction = getDropAction(e.pageY, offset.top, height);
-										
-										if (dropAction && $(self).data('dropAction') && $(self).data('dropAction') != dropAction) {
-											$('#debug-area').html(dropAction).effect("highlight", {color: '#0ff'}, 1000);
-										}
-										
-										showDropIndicator(dropAction, targetRow);
+											
+											var curDropAction = getDropAction(e.pageY, offset.top, height);
+											
+											/**
+											 * Check if a drop action was found and if so update the
+											 * stored drop action.
+											 */
+											
+											if (curDropAction) {
+												hideDropIndicator(self);
+												showDropIndicator(dropAction, targetRow);
 
-										$(self).data('dropAction', dropAction);
-										$(self).data('dropTarget', targetRow);
+												dropAction =  curDropAction;
+												dropTarget = targetRow;
+											}
+										} else if (dropTarget) {
+											var distance = getDistance(e.pageX, e.pageY, dropTarget);
+										}
+										
+										/**
+										 * Unset the drop action and drop target if the distance from
+										 * cursor to element edge is greater than the specified tolerance.
+										 */
+										
+										if (parseInt(config.tolerance) < parseInt(distance)) {
+											hideDropIndicator(self);
+
+											dropAction = false;
+											dropTarget = false;
+										}
+									},
+				stop:			function(e, ui) {
+
+										/**
+										 * Because draggables can be dropped between elements, the 
+										 * droppable drop event does not always fire. Therefor we
+										 * need to move the actions that would normally belong to
+										 * a droppable drop event to the draggable stop event. What
+										 * we do here is check if a drop action is set, and if so
+										 * execute the function corresponding to that action.
+										 *
+										 * ui.helper is the clone (visible while dragging).
+										 * e.target is the original draggable.
+										 * dropTarget is the target that we should append to.
+										 */
+
+										switch(dropAction) {
+											case 'append':
+												setParentClass(self, ui.helper);
+												removeFamily(self, $(e.target));
+												$(e.target).remove();
+												
+												appendFamily(self, ui.helper, dropTarget);
+												break;
+
+											case 'insertBefore':
+												removeFamily(self, $(e.target));
+												$(e.target).remove();
+													
+												insertFamilyBefore(self, ui.helper, dropTarget);
+												break;
+
+											case 'insertAfter':
+												removeFamily(self, $(e.target));
+												$(e.target).remove();
+													
+												insertFamilyAfter(self, ui.helper, dropTarget);
+												break;
+
+											default:
+												break;
+										}
+
+										hideDropIndicator(self);
 									},
 				helper:		function(e, ui) {
+
+										/**
+										 * This helper takes a dragged row and clones it to a new 
+										 * table in a div. This is needed to be able to show the 
+										 * dragged element on screen.
+										 */
+
 										var helper = $('<div class="nested-table-item-dragging"><table></table></div>')
 											.find('table').append($(e.target).closest('tr').clone());
 
@@ -69,38 +157,7 @@
 				tolerance:		'pointer',
 				activeClass:	'ui-droppable-active',
 				hoverClass:		'ui-droppable-hover',
-				drop:					function(e, ui) {												
-												switch($(self).data('dropAction')) {
-													case 'append':
-														setParentClass(self, ui.draggable);
-
-														removeFamily(self, ui.draggable);
-														ui.draggable.remove();
-
-														appendFamily(self, ui.helper, this);
-														break;
-
-													case 'insertBefore':
-														removeFamily(self, ui.draggable);
-														ui.draggable.remove();
-													
-														insertFamilyBefore(self, ui.helper);
-														break;
-
-													case 'insertAfter':
-														removeFamily(self, ui.draggable);
-														ui.draggable.remove();
-													
-														insertFamilyAfter(self, ui.helper);
-														break;
-
-													default:
-														break;
-												}
-												
-												ui.helper.remove();
-												hideDropIndicator(self);
-											}
+				drop:					function() {}
 			};
 			
 			$(self).find('tr').draggable(draggableConfig).droppable(droppableConfig)
@@ -115,7 +172,7 @@
 				}
 			});
 
-			// Hide (or show) all children
+			// Hide (or show) all children on init
 			if (config.initHidden) {
 				$(self).find("tr[class*='child-of-']").hide();
 				$(self).find("tr[class*='" + config.parentClass + "']").addClass('collapsed');
@@ -223,11 +280,11 @@
 	 *
 	 * @param container: the containing element
 	 * @param family: the draggable helper object
+	 * @param target: the droppable target row
 	 */
 
-	function insertFamilyBefore(container, family) {
+	function insertFamilyBefore(container, family, target) {
 		var config = $(container).data('config');
-		var target = $(container).data('dropTarget');
 		var targetParent = getParent(container, target);
 
 		if (false == targetParent) {
@@ -261,11 +318,11 @@
 	 *
 	 * @param container: the containing element
 	 * @param family: the draggable helper object
+	 * @param target: the droppable target row
 	 */
 
-	function insertFamilyAfter(container, family) {
+	function insertFamilyAfter(container, family, target) {
 		var config = $(container).data('config');
-		var target = $(container).data('dropTarget');
 		var targetParent = getParent(container, target);
 
 		var targetLevel = getLevel($(targetParent).attr('class'));
@@ -428,7 +485,8 @@
 		var topRange = {top: targetY, bottom: targetY + (height * 0.2)};
 		var bottomRange = {top: targetY + height - (height * 0.2), bottom: targetY + height};
 										
-		var dropAction;
+		var dropAction = false;
+
 		dropAction = ( mouseY > droppableRange.top && mouseY < droppableRange.bottom )	? 'append'				: dropAction;
 		dropAction = ( mouseY > topRange.top && mouseY < topRange.bottom )							? 'insertBefore'	: dropAction;
 		dropAction = ( mouseY > bottomRange.top && mouseY < bottomRange.bottom )				? 'insertAfter'		: dropAction;
@@ -500,4 +558,55 @@
 			//.removeClass('bg-nested-table-droppable-before-hover')
 			//.removeClass('bg-nested-table-droppable-after-hover');
 	}
+	
+	/**
+	 * Private function getDistance. Gets the distance from
+	 * the mouse cursor to the targets edges.
+	 *
+	 * @param mouseX: mouse x position
+	 * @param mouseY: mouse y position
+	 * @param target: the target object
+	 */
+	
+	function getDistance(mouseX, mouseY, target) {
+		var center = getCenter(target);
+		var vector = { x: Math.abs(mouseX-center.x), y: Math.abs(mouseY-center.y) };
+		var edgeDistance = { x: vector.x - (target.width() / 2), y: vector.y - (target.height() / 2) };
+
+		return Math.max(edgeDistance.x, edgeDistance.y);
+	}
+	
+	/**
+	 * Private function getCenter. Gets the x and y of
+	 * an objects center
+	 *
+	 * @param target: the target object
+	 */
+
+	function getCenter(target) {
+		var offset = $(target).offset();
+
+		return {
+			x:offset.left+ ($(target).width() / 2),
+			y:offset.top + ($(target).height() / 2)
+		}
+	}
+	
+	
+	function print_r(theObj) {
+		if(theObj.constructor == Array || theObj.constructor == Object) {
+			document.write("<ul>")
+			for(var p in theObj){
+				if(theObj[p].constructor == Array || theObj[p].constructor == Object) {
+					document.write("<li>["+p+"] => "+typeof(theObj)+"</li>");
+					document.write("<ul>")
+					print_r(theObj[p]);
+					document.write("</ul>")
+				} else {
+					document.write("<li>["+p+"] => "+theObj[p]+"</li>");
+				}
+			}
+	  	document.write("</ul>")
+  	}
+	} 
 })(jQuery);
