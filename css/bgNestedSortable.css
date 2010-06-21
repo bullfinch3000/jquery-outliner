@@ -13,13 +13,16 @@ table td {
 
 /* Expand/Collapse-link */
 a.expand-collapse {
-	background-color: #ccc;
+	background: transparent url(../images/arrow-right.png) no-repeat;
 	display: block;
 	float:left;
 	margin-right: 5px;
 	width: 15px;
 	height: 15px;
 }
+	a.expand-collapse.expanded {
+		background: transparent url(../images/arrow-down.png);
+	}
 
 /* Nesting levels */
 table tr.level0 td.nested-data { padding-left: 0; }

@@ -3,6 +3,8 @@
 	/**
 	 * Name: bgNestedSortable
 	 * Author: Henrik Almér for AGoodId
+	 * Version: Alpha 1
+	 * Size: 19 KB (minified 10 KB)
 	 *
 	 * This plugin controls expand/collapse and drag/drop of nested structures presented
 	 * in table form.
@@ -11,10 +13,8 @@
 	 *
 	 * @param settings: JavaScript object of settings
 	 *
-	 * TODO: Enable dropping at root level
-	 * TODO: Add/remove toggle buttons in function insertAfter and insertBefore
-	 * TODO: Refactor insertAfter, insertBefore and append functions for better code reuse
-	 * TODO: Implement validation to prevent dropping a parent in it's own child or descendant
+	 * TODO: Make sure the drop indicator accurately reflects the drop
+	 * TODO: Create prettier dialog boxes on faulty drops, maybe with ui.dialog?
 	 */
 
 	$.fn.bgNestedSortable = function(settings) {
@@ -45,21 +45,7 @@
 				revert:		'invalid',
 				revertDuration:		0,
 				drag:			function(e, ui) {
-
-										// Check for throttling
-										var thisRun = new Date().getTime();
-										if(thisRun - lastRun < config.interval)
-											return;
-      
-										lastRun = thisRun;
-										
-										// Check if mouse position has changed
-										var thisMousePos = { x: e.pageX, y: e.pageY };
-										if ( thisMousePos.x == lastMousePos.x && thisMousePos.y == lastMousePos.y )
-											return;
-										
-										lastMousePos = thisMousePos;
-										
+				
 										/**
 										 * Whenever an element is dragged we need to determine what action
 										 * to take once the dragging stops. We need to know this action in
@@ -67,18 +53,32 @@
 										 * drop indicator.
 										 */
 
+										// Check for throttling
+										var thisRun = new Date().getTime();
+										if(config.interval > thisRun - lastRun )
+											return;
+										
+										lastRun = thisRun;
+										
+										// Check if mouse position has changed
+										var thisMousePos = { x: e.pageX, y: e.pageY };
+										if ( lastMousePos.x == thisMousePos.x && lastMousePos.y == thisMousePos.y )
+											return;
+										
+										lastMousePos = thisMousePos;
+
 										var targetRow = $(self).find('.ui-droppable-hover');
 										var distance = 0;
 										var offset;
 										var height;
 
-										if (targetRow.length > 0) {
+										if (0 < targetRow.length) {
 											var distance = getDistance(e.pageX, e.pageY, targetRow);
 										
 											offset = targetRow.offset();
 											height = targetRow.height();
 											
-											var curDropAction = getDropAction(e.pageY, offset.top, height);
+											var curDropAction = (null == offset) ? false : getDropAction(e.pageY, offset.top, height);
 											
 											/**
 											 * Check if a drop action was found and if so update the stored
@@ -123,33 +123,37 @@
 										 * dropTarget is the target that we should append to.
 										 */
 
-										switch(dropAction) {
-											case 'append':
-												setParentClass(self, ui.helper);
-												removeFamily(self, $(e.target));
-												$(e.target).remove();
-												
-												appendFamily(self, ui.helper, dropTarget);
-												break;
+										if (validateDrop(ui.helper, dropTarget)) {
+											switch(dropAction) {
+												case 'append':
+													setParentClass(self, ui.helper);
+													removeFamily(self, $(e.target));
+													$(e.target).remove();
 
-											case 'insertBefore':
-												removeFamily(self, $(e.target));
-												$(e.target).remove();
+													appendFamily(self, ui.helper, dropTarget);
+													break;
+
+												case 'insertBefore':
+													removeFamily(self, $(e.target));
+													$(e.target).remove();
 													
-												insertFamilyBefore(self, ui.helper, dropTarget);
-												break;
+													insertFamilyBefore(self, ui.helper, dropTarget);
+													break;
 
-											case 'insertAfter':
-												removeFamily(self, $(e.target));
-												$(e.target).remove();
+												case 'insertAfter':
+													removeFamily(self, $(e.target));
+													$(e.target).remove();
 													
-												insertFamilyAfter(self, ui.helper, dropTarget);
-												break;
+													insertFamilyAfter(self, ui.helper, dropTarget);
+													break;
 
-											default:
-												break;
+												default:
+													break;
+											}
+										} else {
+											alert("You can't drop there");
 										}
-
+										
 										hideDropIndicator(self);
 									},
 				helper:		function(e, ui) {
@@ -188,20 +192,23 @@
 			});
 
 			// Hide (or show) all children on init
+			var initClass;
 			if (config.initHidden) {
 				$(self).find("tr[class*='child-of-']").hide();
-				$(self).find("tr[class*='" + config.parentClass + "']").addClass('collapsed');
+				initClass= 'collapsed';
 			} else {
-				$(self).find("tr[class*='" + config.parentClass + "']").addClass('expanded');
+				initClass = 'expanded';
 			}
+			
+			$(self).find("tr[class*='" + config.parentClass + "']").addClass(initClass);
 		
 			// Prepend expand/collapse-links to all rows that have children
 			$(self).find('tr.' + config.parentClass + ' td.' + config.dataClass)
-				.prepend('<a href="" class="expand-collapse"></a>');
+				.prepend('<a href="#" class="expand-collapse ' + initClass + '"></a>');
 			
 			// Assign click handlers to expand/collapse-links
 			$(self).find('a.expand-collapse').live('click', function(e) {
-				$(this).closest('tr').toggleClass('collapsed').toggleClass('expanded');
+				$(this).toggleClass('collapsed').toggleClass('expanded').closest('tr').toggleClass('collapsed').toggleClass('expanded');
 				toggleChildren(self, $(this).closest('tr'));
 
 				e.preventDefault();
@@ -227,7 +234,7 @@
 			$(this).toggle();
 		});
 		
-		if ( expandedChildren.length > 0 ) {
+		if (0 < expandedChildren.length) {
 			expandedChildren.each(function() {
 				toggleChildren(container, $(this));
 			});
@@ -258,6 +265,22 @@
 	}
 	
 	/**
+	 * Private function validateDrop. This function checks if the user is trying
+	 * to drop a family in it's own child/descendant. If so it returns false.
+	 *
+	 * @param family: the draggable helper object
+	 * @param target: the droppable target row
+	 */
+	
+	function validateDrop(family, target) {
+		if (0 < $(family).find('#' + $(target).attr('id')).length) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * Private function appendFamily. Appends the dropped family at the right place
 	 * in the table.
 	 *
@@ -267,28 +290,18 @@
 	 */
 	
 	function appendFamily(container, family, target) {
-		var config = $(container).data('config');
+		convertFamily(container, family, target);
+	
+		var targetFamily = $('<div class="family-holder"><table></table></div>');
+		getFamily(container, targetFamily, target);
 
-		var targetLevel = getLevel($(target).attr('class'));
-		var firstChildLevel = getLevel(family.find('table tbody')
-			.find('tr:first-child').attr('class'));
-		
-		// Set parent for top-level children
-		family.find('table tbody tr.level' + firstChildLevel).each(function() {
-			setParent(target, this);
-		});
-		// Set level for all children
-		family.find('table tbody').children().each(function() {
-			setLevel(targetLevel, firstChildLevel, this);
-		});
-		
-		$(target).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
-		if ( $(target).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
-			$(target).find('td.' + config.dataClass)
-				.prepend('<a href="" class="expand-collapse"></a>');
+		if (targetFamily.find('tr').length > 0) {
+			target = $(container).find('#' + targetFamily.find('tr:last-child').attr('id'));
 		}
 
 		family.find('table tbody').children().insertAfter($(target));
+		
+		toggleParenthood(container);
 	}
 	
 	/**
@@ -303,31 +316,11 @@
 		var config = $(container).data('config');
 		var targetParent = getParent(container, target);
 
-		if (false == targetParent) {
-			//
-		} else {
-			var targetLevel = getLevel($(targetParent).attr('class'));
-			var firstChildLevel = getLevel(family.find('table tbody')
-				.find('tr:first-child').attr('class'));
-			
-			// Set parent for top-level children
-			family.find('table tbody tr.level' + firstChildLevel).each(function() {
-				setParent(targetParent, this);
-			});
-
-			// Set level for all children
-			family.find('table tbody').children().each(function() {
-				setLevel(targetLevel, firstChildLevel, this);
-			});
-		
-			$(targetParent).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
-			if ( $(targetParent).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
-				$(targetParent).find('td.' + config.dataClass)
-					.prepend('<a href="" class="expand-collapse"></a>');
-			}
-		}
+		convertFamily(container, family, targetParent);
 
 		family.find('table tbody').children().insertBefore($(target));
+		
+		toggleParenthood(container);
 	}
 	
 	/**
@@ -341,28 +334,77 @@
 	function insertFamilyAfter(container, family, target) {
 		var config = $(container).data('config');
 		var targetParent = getParent(container, target);
+		
+		var targetFamily = $('<div class="family-holder"><table></table></div>');
+		getFamily(container, targetFamily, target);
 
-		var targetLevel = getLevel($(targetParent).attr('class'));
+		if (targetFamily.find('tr').length > 0) {
+			target = $(container).find('#' + targetFamily.find('tr:last-child').attr('id'));
+		}
+
+		convertFamily(container, family, targetParent);
+
+		family.find('table tbody').children().insertAfter($(target));
+		
+		toggleParenthood(container);
+	}
+	
+	/**
+	 * Private function convertFamily. This function is used by the three different
+	 * drop action functions appendFamily, insertFamilyBefore and inserFamilyAfter.
+	 * It analyses where in the table the family is to be inserted and changes its
+	 * classes accordingly.
+	 *
+	 * @param container: the containing element
+	 * @param family: the draggable helper object
+	 * @param target: the droppable target row
+	 */
+	
+	function convertFamily(container, family, target) {
+		var config = $(container).data('config');
+
+		var targetLevel = (false == target) ? -1 : getLevel($(target).attr('class'));
 		var firstChildLevel = getLevel(family.find('table tbody')
 			.find('tr:first-child').attr('class'));
-
+		
 		// Set parent for top-level children
 		family.find('table tbody tr.level' + firstChildLevel).each(function() {
-			setParent(targetParent, this);
+			setParent(target, this);
 		});
-
 		// Set level for all children
 		family.find('table tbody').children().each(function() {
 			setLevel(targetLevel, firstChildLevel, this);
 		});
+	}
+	
+	/**
+	 * Private function toggleParenthood. Removes expand/collapse links from
+	 * items that do not need them.
+	 *
+	 * @param container: the containing element
+	 */
+	
+	function toggleParenthood(container) {
+		var config = $(container).data('config');
+	
+		$(container).find('tr').each(function() {
+			var parentId = $(this).attr('id')
 		
-		$(targetParent).addClass(config.parentClass + ' expanded').find('td.' + config.dataClass)
-		if ( $(targetParent).find('td.' + config.dataClass + ' a.expand-collapse').length <= 0 ) {
-			$(targetParent).find('td.' + config.dataClass)
-				.prepend('<a href="" class="expand-collapse"></a>');
-		}
+			if (0 < parentId.length) {
+				var target = $(container).find('#' + parentId);
 
-		family.find('table tbody').children().insertAfter($(target));
+				if (0 >= $(container).find('.child-of-' + parentId).length) {
+					target.removeClass(config.parentClass + ' expanded collapsed')
+						.find('a.expand-collapse').remove();
+				} else {
+					target.addClass(config.parentClass + ' expanded');
+					if (0 >= target.find('td.' + config.dataClass + ' a.expand-collapse').length) {
+						target.find('td.' + config.dataClass)
+							.prepend('<a href="" class="expand-collapse expanded"></a>');
+					}
+				}
+			}
+		});
 	}
 	
 	/**
@@ -389,15 +431,15 @@
 	 * Private function getLevel. Searches a class string for "level##" and returns
 	 * an integer.
 	 *
-	 * @param class: string
+	 * @param levelClass: string
 	 */
 	
-	function getLevel(class) {
-		var startPos = class.indexOf('level') + 5;
-		var endPos = class.indexOf(' ', startPos);
+	function getLevel(levelClass) {
+		var startPos = levelClass.indexOf('level') + 5;
+		var endPos = levelClass.indexOf(' ', startPos);
 
-		return ( endPos != -1 ) ? parseInt( class.substring(startPos, endPos) )
-														: parseInt( class.substring(startPos) );
+		return (-1 != endPos) ? parseInt( levelClass.substring(startPos, endPos) )
+													: parseInt( levelClass.substring(startPos) );
 	}
 	
 	/**
@@ -426,7 +468,7 @@
 	
 	function getParent(container, child) {
 		var parentClass = getParentClass(child);
-		var parentId = parentClass.substring(9);
+		var parentId = (false == parentClass) ? false : parentClass.substring(9);
 
 		return (false == parentClass) ? false : $(container).find('#' + parentId);
 	}
@@ -443,7 +485,9 @@
 		var curClass = getParentClass(child);
 
 		$(child).removeClass(curClass);
-		$(child).addClass('child-of-' + $(parent).attr('id'));
+		if (false != parent) {
+				$(child).addClass('child-of-' + $(parent).attr('id'));
+		}
 	}
 	
 	/**
@@ -453,16 +497,16 @@
 	 */
 	
 	function getParentClass(child) {
-		var class = $(child).attr('class');
-		var startPos = class.indexOf('child-of-');
-		var endPos = class.indexOf(' ', startPos);
+		var parentClass = $(child).attr('class');
+		var startPos = parentClass.indexOf('child-of-');
+		var endPos = parentClass.indexOf(' ', startPos);
 
 		if (-1 == startPos) {
 			return false;
 		}
 
-		return (-1 != endPos) ? class.substring(startPos, endPos)
-													: class.substring(startPos);
+		return (-1 != endPos) ? parentClass.substring(startPos, endPos)
+													: parentClass.substring(startPos);
 	}
 	
 	/**
@@ -477,15 +521,19 @@
 	function setParentClass(container, child) {
 		var config = $(container).data('config');
 
-		var class = $(child).attr('class');
-		var startPos = class.indexOf('child-of-') + 9;
-		var endPos = class.indexOf(' ', startPos);
-		var parentId = ( endPos != -1 ) ? class.substring(startPos, endPos)
-																		: class.substring(startPos);
+		var parentClass = $(child).attr('class');
+		var startPos = parentClass.indexOf('child-of-') + 9;
+		var endPos = parentClass.indexOf(' ', startPos);
+		var parentId = (-1 != endPos) ? parentClass.substring(startPos, endPos)
+																	: parentClass.substring(startPos);
 
-		if ( $(container).find('.child-of-' + parentId).length < 2 ) {
+		if (0 >= $(container).find('.child-of-' + parentId).length) {
 			$(container).find('#' + parentId).removeClass(config.parentClass + ' expanded collapsed')
 				.find('a.expand-collapse').remove();
+		} else {
+			$(container).find('#' + parentId).addClass(config.parentClass + ' expanded collapsed')
+				.find('td.' + config.dataClass)
+				.prepend('<a href="" class="expand-collapse"></a>');
 		}
 	}
 	
@@ -582,8 +630,6 @@
 	function hideDropIndicator(container) {
 		$(container).find('tr').removeClass('bg-nested-table-droppable-append-hover');
 		$('.drop-indicator-bar').remove();
-			//.removeClass('bg-nested-table-droppable-before-hover')
-			//.removeClass('bg-nested-table-droppable-after-hover');
 	}
 	
 	/**
