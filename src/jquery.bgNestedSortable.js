@@ -202,12 +202,13 @@
 			
 			$(self).find("tr[class*='" + config.parentClass + "']").addClass(initClass);
 		
-			// Prepend expand/collapse-links to all rows that have children
-			$(self).find('tr.' + config.parentClass + ' td.' + config.dataClass)
-				.prepend('<a href="#" class="expand-collapse ' + initClass + '"></a>');
+			// Wrap the content of all td.dataClass in a span element that controls icons.
+			$(self).find('td.' + config.dataClass).each(function() {
+				$(this).html('<span>' + $(this).html() + '</span>');
+			});
 			
 			// Assign click handlers to expand/collapse-links
-			$(self).find('a.expand-collapse').live('click', function(e) {
+			$(self).find('tr.' + config.parentClass + ' td.' + config.dataClass).live('click', function(e) {
 				$(this).toggleClass('collapsed').toggleClass('expanded').closest('tr').toggleClass('collapsed').toggleClass('expanded');
 				toggleChildren(self, $(this).closest('tr'));
 
@@ -395,13 +396,10 @@
 
 				if (0 >= $(container).find('.child-of-' + parentId).length) {
 					target.removeClass(config.parentClass + ' expanded collapsed')
-						.find('a.expand-collapse').remove();
+					target.find('td.' + config.dataClass).removeClass(config.parentClass + ' expanded collapsed')
 				} else {
 					target.addClass(config.parentClass + ' expanded');
-					if (0 >= target.find('td.' + config.dataClass + ' a.expand-collapse').length) {
-						target.find('td.' + config.dataClass)
-							.prepend('<a href="" class="expand-collapse expanded"></a>');
-					}
+					target.find('td.' + config.dataClass).addClass(config.parentClass + ' expanded');
 				}
 			}
 		});
@@ -528,12 +526,9 @@
 																	: parentClass.substring(startPos);
 
 		if (0 >= $(container).find('.child-of-' + parentId).length) {
-			$(container).find('#' + parentId).removeClass(config.parentClass + ' expanded collapsed')
-				.find('a.expand-collapse').remove();
+			$(container).find('#' + parentId).removeClass(config.parentClass + ' expanded collapsed');
 		} else {
-			$(container).find('#' + parentId).addClass(config.parentClass + ' expanded collapsed')
-				.find('td.' + config.dataClass)
-				.prepend('<a href="" class="expand-collapse"></a>');
+			$(container).find('#' + parentId).addClass(config.parentClass + ' expanded collapsed');
 		}
 	}
 	

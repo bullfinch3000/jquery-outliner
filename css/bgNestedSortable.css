@@ -5,23 +5,28 @@ table {
 
 table th,
 table td {
-	border-width: 0;
+	border-right: 1px solid #ccc;
 	text-align: left;
-	padding: 0;
-	width: 200px;
+	padding: 2px 8px;
+}
+table th {
+	border-bottom: 1px solid #ccc;
+}
+table th.nested-data {
+	width: 300px;
 }
 
 /* Expand/Collapse-link */
-a.expand-collapse {
-	background: transparent url(../images/arrow-right.png) no-repeat;
+td.nested-data span {
+	background: transparent url(../images/circle.png) no-repeat;
 	display: block;
-	float:left;
-	margin-right: 5px;
-	width: 15px;
-	height: 15px;
+	padding-left: 20px;
 }
-	a.expand-collapse.expanded {
-		background: transparent url(../images/arrow-down.png);
+	tr.has-children td.nested-data span {
+		background: transparent url(../images/arrow-right.png) no-repeat;
+	}
+	tr.has-children td.nested-data.expanded span {
+		background: transparent url(../images/arrow-down.png) no-repeat;
 	}
 
 /* Nesting levels */
