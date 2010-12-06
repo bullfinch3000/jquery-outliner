@@ -5,14 +5,18 @@ table {
 
 table th,
 table td {
-	border-right: 1px solid #ccc;
+	border-left: 1px solid #ccc;
 	text-align: left;
 	padding: 2px 8px;
+}
+table td.nested-data {
+	border: none;
 }
 table th {
 	border-bottom: 1px solid #ccc;
 }
 table th.nested-data {
+	border-left: none;
 	width: 300px;
 }
 
