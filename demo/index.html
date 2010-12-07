@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><html>
@@ -9,44 +9,114 @@
 	<table class="nested-sortable">
 		<thead>
 			<tr>
-				<th class="nested-data">Titel</th>
+				<th class="nested-data-cell">Titel</th>
 				<th>Författare</th>
 				<th>Publicerad</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr id="row1" class="has-children level0">
-				<td class="nested-data">Test 1</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row1[id]" id="row1-id" value="123" />
+						<span class="nested-data">Test 1</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
 			<tr id="row2" class="child-of-row1 level1">
-				<td class="nested-data">Test 2</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row2[id]" id="row2-id" value="123" />
+						<span class="nested-data">Test 2</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
 			<tr id="row3" class="child-of-row1 has-children level1">
-				<td class="nested-data">Test 3</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row3[id]" id="row3-id" value="123" />
+						<span class="nested-data">Test 3</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
 			<tr id="row4" class="child-of-row3 level2">
-				<td class="nested-data">Test 4</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row4[id]" id="row4-id" value="123" />
+						<span class="nested-data">Test 4</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
 			<tr id="row5" class="has-children child-of-row3 level2">
-				<td class="nested-data">Test 5</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row5[id]" id="row5-id" value="123" />
+						<span class="nested-data">Test 5</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
 			<tr id="row6" class="has-children child-of-row5 level3">
-				<td class="nested-data">Test 6</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row6[id]" id="row6-id" value="123" />
+						<span class="nested-data">Test 6</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
 			<tr id="row7" class="child-of-row6 level4">
-				<td class="nested-data">Test 7</td>
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="nested-data-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row7[id]" id="row7-id" value="123" />
+						<span class="nested-data">Test 7</span>
+					</form>
+				</td>
 				<td>Henrik Almér</td>
 				<td>2010-05-07</td>
 			</tr>
@@ -65,7 +135,45 @@
 	<script type="text/javascript">
 	// <![CDATA[
 		jQuery(function($) {
-			$('table.nested-sortable').bgNestedSortable();
+			$('table.nested-sortable').bgNestedSortable({
+				'addChildCallback' : function(id, parent) {				
+					var data = $('table.nested-sortable').find('tr#row' + id + 'form').serialize();
+
+					$.ajax({
+	  	  		url				: '../demo/appendChildCallback.html',
+    				data			: data,
+    				dataType	: 'json',
+    				method		: 'POST',
+	  	  		success		: function(response, status, xhr) {
+  		  			// If the call was successful
+	    				if ('200' === response.status.code) {
+    						// Set the ID to the one given by the callback
+    						$('table.nested-sortable')
+    							.find('tr#row' + id + ' input[name="row' + id + '[id]"]')
+    							.val(response.id);
+
+	 	   					// Animate background-color to indicate successful save
+  	  					$('table.nested-sortable')
+    							.find('tr#row' + id + ' td')
+    							.animate({backgroundColor: '#0f0'}, 200, null, function() {
+    								$(this).animate({backgroundColor: 'transparent'}, 500, null, function() {
+    									$(this).removeAttr('style');
+    								});
+    							});
+    					}
+	    			}
+	    		});
+    		},
+    		'appendCallback': function(family, target) {
+    			alert('append');
+    		},
+    		'insertBeforeCallback': function(family, target) {
+    			alert('insert before');
+    		},
+    		'insertAfterCallback': function(family, target) {
+    			alert('insert after');
+    		}
+			});
 		});
 	// ]]>
 	</script>

@@ -9,40 +9,44 @@ table td {
 	text-align: left;
 	padding: 2px 8px;
 }
-table td.nested-data {
+table td.nested-data-cell {
 	border: none;
 }
 table th {
 	border-bottom: 1px solid #ccc;
 }
-table th.nested-data {
+table th.nested-data-cell {
 	border-left: none;
 	width: 300px;
 }
 
+/* Form */
+table td.nested-data-cell form { display: inline; }
+
 /* Expand/Collapse-link */
-td.nested-data span {
+td.nested-data-cell .nested-data-icon {
 	background: transparent url(../images/circle.png) no-repeat;
-	display: block;
-	padding-left: 20px;
+	display: inline-block;
+	width: 15px;
+	height: 15px;
 }
-	tr.has-children td.nested-data span {
+	tr.has-children td.nested-data-cell .nested-data-icon {
 		background: transparent url(../images/arrow-right.png) no-repeat;
 	}
-	tr.has-children td.nested-data.expanded span {
+	tr.has-children.expanded td.nested-data-cell .nested-data-icon {
 		background: transparent url(../images/arrow-down.png) no-repeat;
 	}
 
 /* Nesting levels */
-table tr.level0 td.nested-data { padding-left: 0; }
-table tr.level1 td.nested-data { padding-left: 20px; }
-table tr.level2 td.nested-data { padding-left: 40px; }
-table tr.level3 td.nested-data { padding-left: 60px; }
-table tr.level4 td.nested-data { padding-left: 80px; }
-table tr.level5 td.nested-data { padding-left: 100px; }
-table tr.level6 td.nested-data { padding-left: 120px; }
-table tr.level7 td.nested-data { padding-left: 140px; }
-table tr.level8 td.nested-data { padding-left: 160px; }
+table tr.level0 td.nested-data-cell .nested-data-icon { margin-left: 0; }
+table tr.level1 td.nested-data-cell .nested-data-icon { margin-left: 20px; }
+table tr.level2 td.nested-data-cell .nested-data-icon { margin-left: 40px; }
+table tr.level3 td.nested-data-cell .nested-data-icon { margin-left: 60px; }
+table tr.level4 td.nested-data-cell .nested-data-icon { margin-left: 80px; }
+table tr.level5 td.nested-data-cell .nested-data-icon { margin-left: 100px; }
+table tr.level6 td.nested-data-cell .nested-data-icon { margin-left: 120px; }
+table tr.level7 td.nested-data-cell .nested-data-icon { margin-left: 140px; }
+table tr.level8 td.nested-data-cell .nested-data-icon { margin-left: 160px; }
 
 /* Draggable element */
 .nested-table-item-dragging table td {}
@@ -52,3 +56,13 @@ table tr.bg-nested-table-droppable-append-hover		{ background-color: #0ff; }
 
 /* Drop indicator bar */
 .drop-indicator-bar { background-color: #0ff; }
+
+/* Add & Edit icons */
+table tr td .add-edit-icons { visibility: hidden; }
+	table tr td .add-edit-icons a img {
+		border: none;
+		display: block;
+		float: left;
+	}
+
+table tr.active td .add-edit-icons { visibility: visible}
