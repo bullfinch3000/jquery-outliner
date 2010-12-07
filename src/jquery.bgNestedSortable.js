@@ -30,7 +30,7 @@
       'iconClass'							: 'nested-data-icon',
       'parentClass'						: 'has-children',
       'addClass'	        		: 'add-child',
-      'callback'							: function(id) {},
+      'callback'							: function() {},
       'addChildCallback'			: false,
       'deleteCallback'				: false,
       'appendCallback'				: false,
@@ -706,11 +706,6 @@
     
     // Append the row at the right place in the document
     $('<tr id="row' + id + '" class="child-of-' + parentId + ' level' + level + '">' + child + '</tr>').insertAfter($(parent));
-    
-    /**
-     * If config.addChildCallback is not false, run an ajax function
-     * to the specified callback script.
-     */
 
     if ($.isFunction(config.addChildCallback)) {
     	config.addChildCallback.call(this, id, parent);
