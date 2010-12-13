@@ -13,53 +13,34 @@
    *
    * @param settings: JavaScript object of settings
    *
+   * TODO: Make it possible to configure child HTML
    * TODO: Make sure the drop indicator accurately reflects the drop
    * TODO: Create prettier dialog boxes on faulty drops, maybe with ui.dialog?
    */
 
   $.fn.bgNestedSortable = function(settings) {
     var config = {
-      'tolerance'       			: 1,
-      'interval'        			: 30,
-      'expandCollapse'  			: true,
-      'dragAndDrop'    	 			: true,
-      'edit'            			: true,
-      'initHidden'   	   			: true,
-      'dataClass'							: 'nested-data',
-      'dataCellClass'					: 'nested-data-cell',
-      'iconClass'							: 'nested-data-icon',
-      'parentClass'						: 'has-children',
-      'addClass'	        		: 'add-child',
-      'callback'							: function() {},
-      'addChildCallback'			: false,
-      'deleteCallback'				: false,
-      'appendCallback'				: false,
-      'insertBeforeCallback'	: false,
-      'insertAfterCallback'		: false
+      'tolerance'             : 1,
+      'interval'              : 30,
+      'expandCollapse'        : true,
+      'dragAndDrop'           : true,
+      'edit'                  : true,
+      'initHidden'            : true,
+      'dataName'              : 'data',
+      'dataClass'             : 'nested-data',
+      'dataCellClass'         : 'nested-data-cell',
+      'iconClass'             : 'nested-data-icon',
+      'parentClass'           : 'has-children',
+      'addClass'              : 'add-child',
+      'blurCallback'          : false,
+      'addChildCallback'      : false,
+      'deleteCallback'        : false,
+      'appendCallback'        : false,
+      'insertBeforeCallback'  : false,
+      'insertAfterCallback'   : false
     };
     
     if (settings) $.extend(config, settings);
-    
-    /**
-     * Check if callbacks for specific actions have been set. If not
-     * set the specific callback to the general callback.
-     */
-
-    if (false === config.addChildCallback) {
-    	config.addChildCallback = config.callback;
-    }
-    if (false === config.deleteCallback) {
-    	config.deleteCallback = config.callback;
-    }
-    if (false === config.appendCallback) {
-    	config.appendCallback = config.callback;
-    }
-    if (false === config.insertBeforeCallback) {
-    	config.insertBeforeCallback = config.callback;
-    }
-    if (false === config.insertAfterCallback) {
-    	config.insertAfterCallback = config.callback;
-    }
     
     // Initiate each matched container
     this.each(function() {
@@ -200,7 +181,7 @@
                      */
 
                     var helper = 
-                      $('<div class="nested-table-item-dragging"><table></table></div>')
+                      $('<div class="nested-table-item-dragging"><table class="nested-sortable"></table></div>')
                       .find('table').append($(e.target).closest('tr').clone());
 
                     return getFamily(self, helper, $(e.target).closest('tr')).end();
@@ -274,7 +255,7 @@
          * Add active class to table rows and make the data inline-
          * editable on click.
          */
-        
+
         $(self).find('tr td.' + config.dataCellClass + ' .' + config.dataClass)
           .live('click', function(e) {
             // Make sure that an input field is not already added
@@ -285,8 +266,9 @@
               var inputId = $(this).closest('td.' + config.dataClass).attr('id');
               var data = $(this).html();
               var input = '<input type="text" id="'
-                          + inputId + '-data" name="'
-                          + inputId + '[data]" value="'
+                          + inputId + '-'
+                          + config.dataName + '" name="'
+                          + config.dataName + '" value="'
                           + data + '" />';
               $(this).html(input);
 
@@ -305,6 +287,14 @@
             // Remove active class from parent row
             $(this).closest('tr').removeClass('active');
             
+            // Trigger blur callback (for saving)
+            if ($.isFunction(config.blurCallback)) {
+              var parent = getParent(self, $(this).closest('tr'));
+            
+              config.blurCallback.call(this, $(this).closest('tr'), parent);
+            }
+            
+            // Remove input element
             var data = $(this).val();
             $(this)
               .closest('td.' + config.dataCellClass + ' .' + config.dataClass)
@@ -319,7 +309,19 @@
         $(self)
           .find('td.' + config.dataCellClass + ' .' + config.addClass)
           .live('click', function(e) {
-            addChild(self, $(this).closest('tr'));
+            // Trigger a blur event on the active input
+            $(this)
+              .closest('tr')
+              .find('td.' + config.dataCellClass + ' .' + config.dataClass + ' input')
+              .trigger('blur');
+
+            // Add a child to the active row
+            var childId = addChild(self, $(this).closest('tr'));
+
+            // Trigger a click event on the newly added child
+            $('tr#' + childId)
+              .find('td.' + config.dataCellClass + ' .' + config.dataClass)
+              .trigger('click');
         });
       }
     });
@@ -351,8 +353,7 @@
   };
   
   /**
-   * Private function expandChildren. Runs recursively to expand all children and 
-   * grand-children when called.
+   * Private function showFirstLevelChildren.
    *
    * @param container: containing element used to control the scope of the function.
    * @param parent: the parent element
@@ -416,7 +417,7 @@
    */
   
   function appendFamily(container, family, target) {
-  	var config = $(container).data('config');
+    var config = $(container).data('config');
   
     convertFamily(container, family, target);
   
@@ -432,7 +433,7 @@
     toggleParenthood(container);
     
     if ($.isFunction(config.appendCallback)) {
-    	config.appendCallback.call(this, family, target);
+      config.appendCallback.call(this, family, target);
     }
   }
   
@@ -456,7 +457,7 @@
     toggleParenthood(container);
     
     if ($.isFunction(config.insertBeforeCallback)) {
-    	config.insertBeforeCallback.call(this, family, target);
+      config.insertBeforeCallback.call(this, family, target);
     }
   }
   
@@ -487,7 +488,7 @@
     toggleParenthood(container);
     
     if ($.isFunction(config.insertAfterCallback)) {
-    	config.insertAfterCallback.call(this, family, target);
+      config.insertAfterCallback.call(this, family, target);
     }
   }
   
@@ -596,10 +597,9 @@
     $(child).removeClass('level' + curLevel);
     $(child).addClass('level' + newLevel);
   }
-  
+
   /**
-   * Private function setParent. Assigns a row the correct parent row by
-   * class name
+   * Private function getParent.
    *
    * @param container: the containing element
    * @param child: child object
@@ -636,7 +636,10 @@
    */
   
   function getParentClass(child) {
-    var parentClass = $(child).attr('class');
+    var parentClass = $(child).attr('class');    
+    
+    if (undefined === parentClass) return false;
+    
     var startPos = parentClass.indexOf('child-of-');
     var endPos = parentClass.indexOf(' ', startPos);
 
@@ -683,7 +686,7 @@
   function addChild(container, parent) {
     var config = $(container).data('config');
   
-  	// Add parent class to parent row and expand all children
+    // Add parent class to parent row and expand all children
     $(parent).addClass(config.parentClass).addClass('expanded');
     $(parent).find('td.' + config.dataCellClass).addClass('expanded');
     
@@ -692,24 +695,26 @@
     // Find the row with the highest ID and add 1
     var id = 0;
     $(container).find('tr').each(function(index, val) {
-    	curId = parseInt($(this).attr('id').substring(3));
-    	id = (id < curId) ? curId : id;
+      curId = parseInt($(this).attr('id').substring(3));
+      id = (id < curId) ? curId : id;
     });
     id++;
 
-		// Get the level and the parent ID
+    // Get the level and the parent ID
     var level = getLevel($(parent).attr('class')) + 1;
     var parentId = $(parent).attr('id');
 
-		// Create the HTML for the table rows content
-    var child = '<td class="' + config.dataCellClass + '"><span class="add-edit-icons"><a href="#" title="Add child" class="' + config.addClass + '"><img src="../images/add.gif" alt="Add child" /></a><a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a></span><span class="' + config.iconClass + '"></span><form action="#" method="post"><input type="hidden" name="row' + id + '[id]" id="row' + id + '-id" value="123" /><span class="' + config.dataClass + '">Test ' + id + '</span></form></td><td>Henrik Almér</td><td>2010-05-07</td>';
+    // Set the HTML for the table rows content    
+    var childData = '<td class="' + config.dataCellClass + '"><span class="add-edit-icons"><a href="#" title="Add child" class="' + config.addClass + '"><img src="/dv-admin/pix/bgNestedSortable/add.gif" alt="Add child" width="12" height="12" /></a><a href="#" title="Edit node"><img src="/dv-admin/pix/bgNestedSortable/edit.gif" alt="Edit node" width="12" height="12" /></a></span><span class="' + config.iconClass + '"></span><form action="#" method="post"><input type="hidden" name="id" id="row' + id + '-id" value="0" /><input type="hidden" name="categoryID" id="row' + id + '-categoryID" value="12" /><span class="' + config.dataClass + '">Ny artikel</span></form></td><td></td><td></td>';
     
     // Append the row at the right place in the document
-    $('<tr id="row' + id + '" class="child-of-' + parentId + ' level' + level + '">' + child + '</tr>').insertAfter($(parent));
+    var child = $('<tr id="row' + id + '" class="child-of-' + parentId + ' level' + level + '">' + childData + '</tr>').insertAfter($(parent));
 
     if ($.isFunction(config.addChildCallback)) {
-    	config.addChildCallback.call(this, id, parent);
+      config.addChildCallback.call(this, id, parent);
     }
+    
+    return 'row' + id;
   }
   
   /**
