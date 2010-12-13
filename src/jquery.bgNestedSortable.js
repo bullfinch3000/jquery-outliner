@@ -13,7 +13,6 @@
    *
    * @param settings: JavaScript object of settings
    *
-   * TODO: Make it possible to configure child HTML
    * TODO: Make sure the drop indicator accurately reflects the drop
    * TODO: Create prettier dialog boxes on faulty drops, maybe with ui.dialog?
    */
@@ -32,16 +31,28 @@
       'iconClass'             : 'nested-data-icon',
       'parentClass'           : 'has-children',
       'addClass'              : 'add-child',
+      'removeClass'           : 'remove-child',
       'blurCallback'          : false,
       'addChildCallback'      : false,
       'deleteCallback'        : false,
+      'dropCallback'          : false,
       'appendCallback'        : false,
       'insertBeforeCallback'  : false,
       'insertAfterCallback'   : false,
-      'childHtml'							: '<td class="%dataCellClass%"><span class="add-edit-icons"><a href="#" title="Add child" class="%addClass%"><img src="/pix/bgNestedSortable/add.gif" alt="Add child" width="12" height="12" /></a><a href="#" title="Edit node"><img src="/pix/bgNestedSortable/edit.gif" alt="Edit node" width="12" height="12" /></a></span><span class="%iconClass%"></span><form action="#" method="post"><input type="hidden" name="id" id="row%ID%-id" value="0" /><input type="hidden" name="categoryID" id="row%ID%-categoryID" value="" /><span class="%dataClass%">Ny artikel</span></form></td><td></td><td></td>'
+      'childHtml'             : '<td class="%dataCellClass%"><span class="add-edit-icons"><a href="#" title="Add child" class="%addClass%"><img src="/pix/bgNestedSortable/add.gif" alt="Add child" width="12" height="12" /></a><a href="#" title="Edit node"><img src="/pix/bgNestedSortable/edit.gif" alt="Edit node" width="12" height="12" /></a></span><span class="%iconClass%"></span><form action="#" method="post"><input type="hidden" name="id" id="row%ID%-id" value="0" /><input type="hidden" name="categoryID" id="row%ID%-categoryID" value="" /><span class="%dataClass%">Ny artikel</span></form></td><td></td><td></td>'
     };
     
     if (settings) $.extend(config, settings);
+    
+    /**
+     * Set append, insertAfter and insertBefore callbacks to the
+     * standard drop callback, unless a specific callback is
+     * supplied.
+     */
+    
+    config.appendCallback = (false == config.appendCallback) ? config.dropCallback : config.appendCallback;
+    config.insertBeforeCallback = (false == config.insertBeforeCallback) ? config.dropCallback : config.insertBeforeCallback;
+    config.insertAfterCallback = (false == config.insertAfterCallback) ? config.dropCallback : config.insertAfterCallback;
     
     // Initiate each matched container
     this.each(function() {
@@ -324,6 +335,23 @@
               .find('td.' + config.dataCellClass + ' .' + config.dataClass)
               .trigger('click');
         });
+        
+        /**
+         * Make it so that clicking on an element with the class
+         * config.removeClass removes the current node
+         */
+        
+        $(self)
+          .find('td.' + config.dataCellClass + ' .' + config.removeClass)
+          .live('click', function(e) {
+            var target = $(this).closest('tr');
+            
+            if ($.isFunction(config.deleteCallback)) {
+              config.deleteCallback.call(this, target);
+            }
+            
+            target.remove();
+        });
       }
     });
     
@@ -419,7 +447,10 @@
   
   function appendFamily(container, family, target) {
     var config = $(container).data('config');
-  
+
+    var parent = target;
+    var childId = family.find('table tbody').children('tr:first').attr('id');
+
     convertFamily(container, family, target);
   
     var targetFamily = $('<div class="family-holder"><table></table></div>');
@@ -434,7 +465,8 @@
     toggleParenthood(container);
     
     if ($.isFunction(config.appendCallback)) {
-      config.appendCallback.call(this, family, target);
+      var child = $(container).find('tr#' + childId);
+      config.appendCallback.call(this, child, parent);
     }
   }
   
@@ -449,6 +481,7 @@
   function insertFamilyBefore(container, family, target) {
     var config = $(container).data('config');
 
+    var childId = family.find('table tbody').children('tr:first').attr('id');
     var targetParent = getParent(container, target);
 
     convertFamily(container, family, targetParent);
@@ -458,7 +491,8 @@
     toggleParenthood(container);
     
     if ($.isFunction(config.insertBeforeCallback)) {
-      config.insertBeforeCallback.call(this, family, target);
+      var child = $(container).find('tr#' + childId);
+      config.insertBeforeCallback.call(this, child, targetParent);
     }
   }
   
@@ -473,6 +507,7 @@
   function insertFamilyAfter(container, family, target) {
     var config = $(container).data('config');
 
+    var childId = family.find('table tbody').children('tr:first').attr('id');
     var targetParent = getParent(container, target);
     
     var targetFamily = $('<div class="family-holder"><table></table></div>');
@@ -489,7 +524,8 @@
     toggleParenthood(container);
     
     if ($.isFunction(config.insertAfterCallback)) {
-      config.insertAfterCallback.call(this, family, target);
+      var child = $(container).find('tr#' + childId);
+      config.insertAfterCallback.call(this, child, targetParent);
     }
   }
   
@@ -706,11 +742,12 @@
     var parentId = $(parent).attr('id');
     
     var childHtml = config.childHtml
-    	.replace(/%dataCellClass%/ig, config.dataCellClass)
-    	.replace(/%addClass%/ig, config.addClass)
-    	.replace(/%iconClass%/ig, config.iconClass)
-    	.replace(/%dataClass%/ig, config.dataClass)
-    	.replace(/%ID%/ig, id);
+      .replace(/%dataCellClass%/ig, config.dataCellClass)
+      .replace(/%addClass%/ig, config.addClass)
+      .replace(/%removeClass%/ig, config.addClass)
+      .replace(/%iconClass%/ig, config.iconClass)
+      .replace(/%dataClass%/ig, config.dataClass)
+      .replace(/%ID%/ig, id);
     
     // Append the row at the right place in the document
     var child = $('<tr id="row' + id + '" class="child-of-' + parentId + ' level' + level + '">' + childHtml + '</tr>').insertAfter($(parent));
