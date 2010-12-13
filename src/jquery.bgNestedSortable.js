@@ -37,7 +37,8 @@
       'deleteCallback'        : false,
       'appendCallback'        : false,
       'insertBeforeCallback'  : false,
-      'insertAfterCallback'   : false
+      'insertAfterCallback'   : false,
+      'childHtml'							: '<td class="%dataCellClass%"><span class="add-edit-icons"><a href="#" title="Add child" class="%addClass%"><img src="/pix/bgNestedSortable/add.gif" alt="Add child" width="12" height="12" /></a><a href="#" title="Edit node"><img src="/pix/bgNestedSortable/edit.gif" alt="Edit node" width="12" height="12" /></a></span><span class="%iconClass%"></span><form action="#" method="post"><input type="hidden" name="id" id="row%ID%-id" value="0" /><input type="hidden" name="categoryID" id="row%ID%-categoryID" value="" /><span class="%dataClass%">Ny artikel</span></form></td><td></td><td></td>'
     };
     
     if (settings) $.extend(config, settings);
@@ -703,15 +704,19 @@
     // Get the level and the parent ID
     var level = getLevel($(parent).attr('class')) + 1;
     var parentId = $(parent).attr('id');
-
-    // Set the HTML for the table rows content    
-    var childData = '<td class="' + config.dataCellClass + '"><span class="add-edit-icons"><a href="#" title="Add child" class="' + config.addClass + '"><img src="/dv-admin/pix/bgNestedSortable/add.gif" alt="Add child" width="12" height="12" /></a><a href="#" title="Edit node"><img src="/dv-admin/pix/bgNestedSortable/edit.gif" alt="Edit node" width="12" height="12" /></a></span><span class="' + config.iconClass + '"></span><form action="#" method="post"><input type="hidden" name="id" id="row' + id + '-id" value="0" /><input type="hidden" name="categoryID" id="row' + id + '-categoryID" value="12" /><span class="' + config.dataClass + '">Ny artikel</span></form></td><td></td><td></td>';
+    
+    var childHtml = config.childHtml
+    	.replace(/%dataCellClass%/ig, config.dataCellClass)
+    	.replace(/%addClass%/ig, config.addClass)
+    	.replace(/%iconClass%/ig, config.iconClass)
+    	.replace(/%dataClass%/ig, config.dataClass)
+    	.replace(/%ID%/ig, id);
     
     // Append the row at the right place in the document
-    var child = $('<tr id="row' + id + '" class="child-of-' + parentId + ' level' + level + '">' + childData + '</tr>').insertAfter($(parent));
+    var child = $('<tr id="row' + id + '" class="child-of-' + parentId + ' level' + level + '">' + childHtml + '</tr>').insertAfter($(parent));
 
     if ($.isFunction(config.addChildCallback)) {
-      config.addChildCallback.call(this, id, parent);
+      config.addChildCallback.call(this, child, parent);
     }
     
     return 'row' + id;
