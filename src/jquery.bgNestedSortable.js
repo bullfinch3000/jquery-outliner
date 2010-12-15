@@ -4,7 +4,7 @@
    * Name: bgNestedSortable
    * Author: Henrik Almér for AGoodId
    * Version: Alpha 2
-   * Size: 19 KB (minified 10 KB)
+   * Size: 30 KB (minified 10 KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested structures presented
    * in table form.
@@ -62,9 +62,16 @@
 
       // Instance globals
       var lastRun = 0;
+      var thisRun = 0;
       var lastMousePos = { x: 0, y: 0 };
+      var thisMousePos;
       var dropAction = false;
       var dropTarget = false;
+      var curDropAction;
+      var targetRow;
+      var distance;
+      var offset;
+      var height;
 
       // jQuery draggable configuration
       var draggableConfig = {
@@ -81,31 +88,29 @@
                      */
 
                     // Check for throttling
-                    var thisRun = new Date().getTime();
+                    thisRun = new Date().getTime();
                     if(config.interval > thisRun - lastRun )
                       return;
                     
                     lastRun = thisRun;
                     
                     // Check if mouse position has changed
-                    var thisMousePos = { x: e.pageX, y: e.pageY };
+                    thisMousePos = { x: e.pageX, y: e.pageY };
                     if ( lastMousePos.x == thisMousePos.x && lastMousePos.y == thisMousePos.y )
                       return;
                     
                     lastMousePos = thisMousePos;
 
-                    var targetRow = $(self).find('.ui-droppable-hover');
-                    var distance = 0;
-                    var offset;
-                    var height;
+                    targetRow = $(self).find('.ui-droppable-hover');
+                    distance = 0;
 
                     if (0 < targetRow.length) {
-                      var distance = getDistance(e.pageX, e.pageY, targetRow);
+                      distance = getDistance(e.pageX, e.pageY, targetRow);
                     
                       offset = targetRow.offset();
                       height = targetRow.height();
                       
-                      var curDropAction = (null == offset) ? false : getDropAction(e.pageY, offset.top, height);
+                      curDropAction = (null == offset) ? false : getDropAction(e.pageY, offset.top, height);
                       
                       /**
                        * Check if a drop action was found and if so update the stored
@@ -120,7 +125,7 @@
                         dropTarget = targetRow;
                       }
                     } else if (dropTarget) {
-                      var distance = getDistance(e.pageX, e.pageY, dropTarget);
+                      distance = getDistance(e.pageX, e.pageY, dropTarget);
                     }
                     
                     /**
@@ -344,13 +349,14 @@
         $(self)
           .find('td.' + config.dataCellClass + ' .' + config.removeClass)
           .live('click', function(e) {
-            var target = $(this).closest('tr');
+            var parent = $(this).closest('tr');
             
             if ($.isFunction(config.deleteCallback)) {
-              config.deleteCallback.call(this, target);
+              config.deleteCallback.call(this, parent);
             }
-            
-            target.remove();
+
+            removeFamily(self, parent);
+            parent.remove();
         });
       }
     });
@@ -744,7 +750,7 @@
     var childHtml = config.childHtml
       .replace(/%dataCellClass%/ig, config.dataCellClass)
       .replace(/%addClass%/ig, config.addClass)
-      .replace(/%removeClass%/ig, config.addClass)
+      .replace(/%removeClass%/ig, config.removeClass)
       .replace(/%iconClass%/ig, config.iconClass)
       .replace(/%dataClass%/ig, config.dataClass)
       .replace(/%ID%/ig, id);
