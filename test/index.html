@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><html>
+	<title>jquery.bgOutliner.js – Tests</title>
+	<link rel="stylesheet" media="all" href="../css/bgNestedSortable.css" />
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+</head>
+<body>
+  <!--Example tree structure-->
+	<table id="outliner">
+		<thead>
+			<tr>
+				<th class="nested-data-cell">Titel</th>
+				<th>Författare</th>
+				<th>Publicerad</th>
+			</tr>
+		</thead>
+		<tbody id="outliner-tbody">
+			<tr id="row1" class="has-children level0">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row1[id]" id="row1-id" value="123" />
+						<span class="nested-data">Test 1</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row2" class="child-of-row1 level1">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row2[id]" id="row2-id" value="123" />
+						<span class="nested-data">Test 2</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row3" class="child-of-row1 has-children level1">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row3[id]" id="row3-id" value="123" />
+						<span class="nested-data">Test 3</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row4" class="child-of-row3 level2">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row4[id]" id="row4-id" value="123" />
+						<span class="nested-data">Test 4</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row5" class="has-children child-of-row3 level2">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row5[id]" id="row5-id" value="123" />
+						<span class="nested-data">Test 5</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row6" class="has-children child-of-row5 level3">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row6[id]" id="row6-id" value="123" />
+						<span class="nested-data">Test 6</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+			<tr id="row7" class="child-of-row6 level4">
+				<td class="nested-data-cell">
+					<span class="add-edit-icons">
+						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+					</span>
+					<span class="expand-collapse-icon"></span>
+					<form action="#" method="post">
+						<input type="hidden" name="row7[id]" id="row7-id" value="123" />
+						<span class="nested-data">Test 7</span>
+					</form>
+				</td>
+				<td>Henrik Almér</td>
+				<td>2010-05-07</td>
+			</tr>
+		</tbody>
+	</table>
+	<!--End example tree structure-->
+	
+	<!--qUnit Tests-->
+	<h1 id="qunit-header">jQuery.bgOutliner Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup, will be hidden</div>
+  <!--End qUnit Tests-->
+
+	<!--JavaScript Below--> 
+	<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+		google.load('jquery', '1.4.2');
+		google.load('jqueryui', '1.8.1');
+	// ]]>
+	</script>
+	<script type="text/javascript" src="../src/jquery.bgOutliner.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+  
+  <!--Define and run tests-->
+  <script type="text/javascript">
+    // <![CDATA[
+    jQuery(function() {
+
+      /**
+       * General tests
+       */
+
+      module('General');
+      
+      test('Error should be thrown if non existing method is called', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        raises(function() {
+          $('#outliner tbody').bgOutliner('nonExistingMethod');
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+
+      /**
+       * Init method tests
+       */
+
+      module('Init method');
+
+      test('Assert that a data object is set for the given element after the plugin has been instanced, but not before', function() {
+        expect(2);
+        equal($('#outliner tbody').data('bgOutliner'),
+              null,
+              'Data object was null before initiating the instance');
+        notEqual($('#outliner tbody').bgOutliner().data('bgOutliner'),
+                 null,
+                 'Data object was not null after initiating the instance');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('An error should be thrown if the init method is called on an element that is already an instance of the plugin', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        raises(function() {
+          $('#outliner').bgOutliner();
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+
+      test('An error should be thrown if the plugin is instanced on an element that does not have one or more tr elements as children', function() {
+        raises(function() {
+          $('#outliner').bgOutliner();
+        }, 'Error was thrown');
+      });
+      
+      test('A reference to the supplied DOM element should be returned when successfully instancing the plugin on an element', function() {
+        equal($('#outliner tbody').attr('id'),
+              $('#outliner tbody').bgOutliner().attr('id'),
+              'The id attribute matched');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Update Settings method tests
+       */
+
+      module('Update Settings method');
+      
+      test('You should not be able to update settings for an uninstanced object', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('updateSettings', {});
+        }, 'Error was thrown');
+      });
+      
+      /**
+       * Destroy method tests
+       */
+
+      module('Destroy method');
+      
+      test('You should not be able to destroy an uninstanced object', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('destroy');
+        }, 'Error was thrown');
+      });
+      
+      test('Data object should be null after the instance has been destroyed, but not before', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        expect(2);
+        notEqual($('#outliner tbody').data('bgOutliner'),
+                 null,
+                 'Data object was not null before destroying the instance');
+
+        equal($('#outliner tbody').bgOutliner('destroy').data('bgOutliner'),
+              null,
+              'Data object was null after destroying the instance');
+      });
+      
+      /**
+       * Toggle Children method tests
+       */
+
+      module('Toggle Children method');
+      
+      test('test', function() {
+      });
+    });    
+    // ]]>
+  </script>
+</body>
+</html>
