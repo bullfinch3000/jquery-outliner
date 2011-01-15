@@ -2,11 +2,13 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><html>
-	<title>jquery.bgNestedSortable.js – Demo</title>
+	<title>jquery.bgOutliner.js – Tests</title>
 	<link rel="stylesheet" media="all" href="../css/bgNestedSortable.css" />
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
 </head>
 <body>
-	<table id="nested-sortable">
+  <!--Example tree structure-->
+	<table id="outliner">
 		<thead>
 			<tr>
 				<th class="nested-data-cell">Titel</th>
@@ -14,7 +16,7 @@
 				<th>Publicerad</th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="outliner-tbody">
 			<tr id="row1" class="has-children level0">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
@@ -122,61 +124,24 @@
 			</tr>
 		</tbody>
 	</table>
+	<!--End example tree structure-->
 
 	<!--JavaScript Below--> 
 	<script src="http://www.google.com/jsapi" type="text/javascript"></script>
 	<script type="text/javascript">
 	// <![CDATA[
-		google.load("jquery", "1.4.2");
-		google.load("jqueryui", "1.8.1");
+		google.load('jquery', '1.4.2');
+		google.load('jqueryui', '1.8.1');
 	// ]]>
 	</script>
-	<script type="text/javascript" src="../src/jquery.bgNestedSortable.js"></script>
+	<script type="text/javascript" src="../src/jquery.bgOutliner.js"></script>
 	
 	<script type="text/javascript">
-	// <![CDATA[
-		jQuery(function($) {
-			$('#nested-sortable tbody').bgNestedSortable({
-				'addChildCallback' : function(id, parent) {				
-					var data = $('table.nested-sortable').find('tr#row' + id + 'form').serialize();
-
-					$.ajax({
-	  	  		url				: '../demo/appendChildCallback.html',
-    				data			: data,
-    				dataType	: 'json',
-    				method		: 'POST',
-	  	  		success		: function(response, status, xhr) {
-  		  			// If the call was successful
-	    				if ('200' === response.status.code) {
-    						// Set the ID to the one given by the callback
-    						$('table.nested-sortable')
-    							.find('tr#row' + id + ' input[name="row' + id + '[id]"]')
-    							.val(response.id);
-
-	 	   					// Animate background-color to indicate successful save
-  	  					$('table.nested-sortable')
-    							.find('tr#row' + id + ' td')
-    							.animate({backgroundColor: '#0f0'}, 200, null, function() {
-    								$(this).animate({backgroundColor: 'transparent'}, 500, null, function() {
-    									$(this).removeAttr('style');
-    								});
-    							});
-    					}
-	    			}
-	    		});
-    		},
-    		'appendCallback': function(family, target) {
-    			alert('append');
-    		},
-    		'insertBeforeCallback': function(family, target) {
-    			alert('insert before');
-    		},
-    		'insertAfterCallback': function(family, target) {
-    			alert('insert after');
-    		}
-			});
-		});
-	// ]]>
+    // <![CDATA[
+    jQuery(function($) {
+      $('#outliner tbody').bgOutliner();
+    });
+    // ]]>
 	</script>
 </body>
 </html>
