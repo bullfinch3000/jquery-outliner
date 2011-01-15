@@ -117,11 +117,7 @@
               + settings.dataCellClass + ' .'
               + settings.expColIconClass)
         .live('click.' + pluginName, function(e) {
-          $(this).closest('tr')
-                  .toggleClass(settings.collapsedClass)
-                  .toggleClass(settings.expandedClass);
-
-          $self.bgOutliner('toggleChildren', $(this).closest('tr'));
+          $self.bgOutliner('toggleNode', $(this).closest('tr'));
 
           e.preventDefault();
         });
@@ -197,11 +193,40 @@
                                 settings);
       });
     },
+    
+    /**
+     * Toggles expanded and collapsed classes for an element and calls
+     * a helper function to toggle visibility of child elements.
+     *
+     * CONTRACT
+     * Expected input: A table row that is a direct descendant to an
+     *                 instanced element.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+    
+    toggleNode: function($parent) {
+      var $self = this;
+    
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $parent);
+    
+      // Toggle expandedClass and collapsedClass
+      $parent.toggleClass($self.data(pluginName)
+                          .settings.expandedClass);
+      $parent.toggleClass($self.data(pluginName)
+                          .settings.collapsedClass);
+
+      // Toggle visibility of descendants
+      $self.bgOutliner('toggleDescendants', $parent);
+      
+      return $self;
+    },
 
     /**
-     * Method for toggling visibility of a parents children. Runs
-     * recursively to toggle all children and grand-children when an
-     * expand/collapse-link is clicked.
+     * Method for toggling visibility of a parents descendants. Runs
+     * recursively to toggle all children and grand-children.
      *
      * CONTRACT
      * Expected input: A table row that is a direct descendant to an
@@ -210,7 +235,7 @@
      * Return:         A reference to the instanced DOM element
      */
 
-    toggleChildren: function($parent) {
+    toggleDescendants: function($parent) {
       var $self = this;
       
       // Honor the contract
@@ -223,17 +248,17 @@
                                         + $self.data(pluginName)
                                           .settings.expandedClass);
 
+      // Call recursively to toggle all descendants
+      if (0 < $expandedChildren.length) {
+        $expandedChildren.each(function() {
+          $self.bgOutliner('toggleDescendants', $(this));
+        });
+      }
+      
       // Toggle all direct children
       this.find('.child-of-' + idParent).each(function() {
         $(this).toggle();
       });
-
-      // Call recursively to toggle all descendants
-      if (0 < $expandedChildren.length) {
-        $expandedChildren.each(function() {
-          $self.bgOutliner('toggleChildren', $(this));
-        });
-      }
       
       return $self;
     }, // End methods.toggleChildren

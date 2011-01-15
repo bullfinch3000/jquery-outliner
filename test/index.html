@@ -226,7 +226,23 @@
           $('#outliner tbody').bgOutliner('updateSettings', {});
         }, 'Error was thrown');
       });
-      
+
+      test('Settings should be updated when the updateSettings method is called', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        $('#outliner tbody').bgOutliner('updateSettings',
+                                        {'expandedClass': 'testClass'});
+        equal($('#outliner tbody')
+                .data('bgOutliner')
+                .settings.expandedClass,
+              'testClass',
+              'Settings were updated');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+
       /**
        * Destroy method tests
        */
@@ -254,12 +270,55 @@
       });
       
       /**
-       * Toggle Children method tests
+       * Toggle Node method tests
        */
 
-      module('Toggle Children method');
+      module('Toggle Node method');
       
-      test('test', function() {
+      test('Invoking toggleNode on row 1 should make row 2 and 3 visible', function() {
+        expect(2);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        // Toggle children of row 1 (should make them visible)
+        $('#outliner tbody').bgOutliner('toggleNode', $('#row1'));
+        ok($('#outliner tbody #row2:visible').length > 0, 'Row 2 was visible after toggling children of row 1');
+        ok($('#outliner tbody #row3:visible').length > 0, 'Row 3 was visible after toggling children of row 1');
+      });
+      
+      test('Invoking toggleNode on row 3, after having invoked in on row 1, should make row 4 and 5 visible', function() {
+        expect(2);
+      
+        // Toggle children of row 3 (should make them visible)
+        $('#outliner tbody').bgOutliner('toggleNode', $('#row3'));
+        ok($('#outliner tbody #row4:visible').length > 0, 'Row 4 was visible after toggling children of row 3');
+        ok($('#outliner tbody #row5:visible').length > 0, 'Row 5 was visible after toggling children of row 3');
+      });
+      
+      test('Invoking toggleNode on row 1 once more should make rows 2, 3, 4 and 5 hidden', function() {
+        expect(4);
+      
+        // Toggle children of row 1 (should make them hidden)
+        $('#outliner tbody').bgOutliner('toggleNode', $('#row1'));
+        ok($('#outliner tbody #row2:visible').length <= 0, 'Row 2 was hidden after toggling children of row 1');
+        ok($('#outliner tbody #row3:visible').length <= 0, 'Row 3 was hidden after toggling children of row 1');
+        ok($('#outliner tbody #row4:visible').length <= 0, 'Row 4 was hidden after toggling children of row 1');
+        ok($('#outliner tbody #row5:visible').length <= 0, 'Row 5 was hidden after toggling children of row 1');
+      });
+      
+      test('Invoking toggleNode on row 1 yet again should make rows 2, 3, 4 and 5 visible', function() {
+        expect(4);
+      
+        // Toggle children of row 1 (should make them visible)
+        $('#outliner tbody').bgOutliner('toggleNode', $('#row1'));
+        ok($('#outliner tbody #row2:visible').length > 0, 'Row 2 was visible after toggling children of row 1');
+        ok($('#outliner tbody #row3:visible').length > 0, 'Row 3 was visible after toggling children of row 1');
+        ok($('#outliner tbody #row4:visible').length > 0, 'Row 4 was visible after toggling children of row 1');
+        ok($('#outliner tbody #row5:visible').length > 0, 'Row 5 was visible after toggling children of row 1');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
       });
     });    
     // ]]>
