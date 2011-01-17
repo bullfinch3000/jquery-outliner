@@ -366,6 +366,7 @@
           iCurKey,
           sChildHtml,
           sChildId,
+          sChildRow,
           sParentId;
       
       var settings = $self.data(pluginName).settings;
@@ -407,20 +408,31 @@
                               settings.dataClass);
       
       // Create the child node
-      $child = $('<tr id="'
+      sChildRow = '<tr id="'
                   + sChildId
-                  + '" class="'
-                  + settings.childOfClassPrefix
-                  + sParentId
-                  + ' '
+                  + '" class="';
+      if (sParentId != null) {
+        sChildRow = sChildRow
+                    + settings.childOfClassPrefix
+                    + sParentId
+                    + ' ';
+      }
+      sChildRow = sChildRow
                   + settings.levelClassPrefix
                   + iLevel
                   + '">'
                   + sChildHtml
-                  + '</tr>');
+                  + '</tr>';
       
-      // Insert the child node at the correct place in the instance            
-      $child.insertAfter($parent);
+      $child = $(sChildRow);
+      
+      // Insert the child node at the correct place in the instance
+      if ($parent) {
+        $child.insertAfter($parent);
+        $parent.addClass(settings.hasChildrenClass);
+      } else {
+        $self.prepend($child);
+      }
       
       // Call the onAddNode callback function, if it is defined
       if ($.isFunction(settings.onAddNode)) {
@@ -430,10 +442,42 @@
       return $self;
     }, // End methods.addNode
 
+    /**
+     * Removes a node and all of its descendants
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+
     removeNode: function($node) {
+      var $self = this;
+
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+
+      var settings = $self.data(pluginName).settings;
+
+      // Remove all descendants
+      if ($node.hasClass(settings.hasChildrenClass)) {
+        $self
+        .find('.' + settings.childOfClassPrefix + $node.attr('id'))
+        .each(function() {
+          $self.bgOutliner('removeNode', $(this));
+        });
+      }
+
+      // Remove node
+      $node.remove();
+
+      return $self;
     }, // End methods.removeNode
 
-    appendNode: function($parent, $node) {
+    appendNode: function($target, $node) {
     }, // End methods.appendNode
 
     insertBefore: function($target, $node) {

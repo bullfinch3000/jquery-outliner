@@ -477,6 +477,21 @@
         $('#outliner tbody').bgOutliner('destroy');
       });
       
+      test('If addNode is called without an argument, a root level node should be added', function() {
+        expect(3);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        $('#outliner tbody').bgOutliner('addNode');
+        equal($('#outliner tbody').find('tr:eq(0)').attr('id'), $('#row10').attr('id'), 'The new node was inserted at the top');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row10')), 0, 'The new nodes level was set to 0');
+        equal($('#outliner tbody').bgOutliner('getParent', $('#row10')), null, 'The new nodes parent was set to null');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
       test('If addNode is called on a collapsed node, that node should be expanded', function() {
         // Create instance
         $('#outliner tbody').bgOutliner();
@@ -492,7 +507,85 @@
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
       });
-    });    
+      
+      test('If addNode is called to add a child to another node, that parent node should get the hasChildren class', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        equal($('#row2').hasClass('has-children'), false, 'Before addNode: Row 2 does not have the hasChildren class');
+        $('#outliner tbody').bgOutliner('addNode', $('#row2'));
+        ok($('#row2').hasClass('has-children'), 'After addNode: Row 2 has the hasChildren class');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Remove Node method tests
+       */
+
+      module('Remove Node method');
+      
+      test('Invoking removeNode on an element that is not a plugin instance should throw an error', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('removeNode');
+        }, 'Error was thrown');
+      });
+      
+      test('Invoking removeNode with an argument that is not a direct child of an instance should throw an error', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        raises(function() {
+          $('#outliner tbody').bgOutliner('removeNode', $('#header-row'));
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Invoking removeNode with an argument that is a direct child of an instance should return a reference to the instance', function() {
+        expect(2);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        ok($('#outliner tbody').bgOutliner('removeNode', $('#row9')).is('#outliner tbody'), 'Reference to self was returned');
+        equal($('#outliner tbody').find('#row9').length, 0, 'Row 9 was removed');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Invoking removeNode with on a root level node should work', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        $('#outliner tbody').bgOutliner('removeNode', $('#row10'))
+        equal($('#outliner tbody').find('#row10').length, 0, 'Root level node was removed');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Removing a node that has descendants should remove all of those descendants', function() {
+        expect(6);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        $('#outliner tbody').bgOutliner('removeNode', $('#row3'));
+        equal($('#outliner tbody').find('#row3').length, 0, 'Removing row 3 should remove node 3');
+        equal($('#outliner tbody').find('#row4').length, 0, 'Removing row 3 should remove node 4');
+        equal($('#outliner tbody').find('#row5').length, 0, 'Removing row 3 should remove node 5');
+        equal($('#outliner tbody').find('#row11').length, 0, 'Removing row 3 should remove node 11');
+        equal($('#outliner tbody').find('#row6').length, 0, 'Removing row 3 should remove node 6');
+        equal($('#outliner tbody').find('#row7').length, 0, 'Removing row 3 should remove node 7');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+    });
     // ]]>
   </script>
 </body>
