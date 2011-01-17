@@ -10,7 +10,7 @@
   <!--Example tree structure-->
 	<table id="outliner">
 		<thead>
-			<tr>
+			<tr id="header-row">
 				<th class="nested-data-cell">Titel</th>
 				<th>Författare</th>
 				<th>Publicerad</th>
@@ -21,7 +21,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -36,7 +35,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -51,7 +49,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -66,7 +63,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -81,7 +77,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -96,7 +91,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -111,7 +105,6 @@
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
 						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -316,6 +309,185 @@
         ok($('#outliner tbody #row3:visible').length > 0, 'Row 3 was visible after toggling children of row 1');
         ok($('#outliner tbody #row4:visible').length > 0, 'Row 4 was visible after toggling children of row 1');
         ok($('#outliner tbody #row5:visible').length > 0, 'Row 5 was visible after toggling children of row 1');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Get Level method tests
+       */
+      
+      module('Get Level method');
+      
+      test('Invoking getLevel on an element that is not a plugin instance should throw an error', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('getLevel');
+        }, 'Error was thrown');
+      });
+      
+      test('Invoking getLevel with an argument that is not a direct child of an instance should throw an error', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        raises(function() {
+          $('#outliner tbody').bgOutliner('getLevel', $('#header-row'));
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Invoking getLevel with an argument that is a direct child of an instance should return an integer referencing that rows level', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row1')), 0, 'Row 1 is level 0');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row2')), 1, 'Row 2 is level 1');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row3')), 1, 'Row 3 is level 1');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row4')), 2, 'Row 4 is level 2');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row5')), 2, 'Row 5 is level 2');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row6')), 3, 'Row 6 is level 3');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row7')), 4, 'Row 7 is level 4');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Has Children method tests
+       */
+      
+      module('Has Children method');
+      
+      test('Invoking hasChildren on an element that is not a plugin instance should throw an error', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('hasChildren');
+        }, 'Error was thrown');
+      });
+      
+      test('Invoking hasChildren with an argument that is not a direct child of an instance should throw an error', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        raises(function() {
+          $('#outliner tbody').bgOutliner('hasChildren', $('#header-row'));
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('hasChildren should return true if the element is a parent, and false if not', function() {
+        expect(2);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        ok($('#outliner tbody').bgOutliner('hasChildren', $('#row2')) == false, 'Returned false for row 2');
+        ok($('#outliner tbody').bgOutliner('hasChildren', $('#row1')), 'Returned true for row 1');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Get Parent method tests
+       */
+      
+      module('Get Parent method');
+      
+      test('Invoking getParent on an element that is not a plugin instance should throw an error', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('getParent');
+        }, 'Error was thrown');
+      });
+      
+      test('Invoking getParent with an argument that is not a direct child of an instance should throw an error', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        raises(function() {
+          $('#outliner tbody').bgOutliner('getParent', $('#header-row'));
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Get parent should return null for a top level node, and a correct integer for child nodes', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        equal($('#outliner tbody').bgOutliner('getParent', $('#row2')), 1, 'Returned 1 for row 2');
+        equal($('#outliner tbody').bgOutliner('getParent', $('#row1')), null, 'Returned null for row 1');
+        equal($('#outliner tbody').bgOutliner('getParent', $('#row7')), 6, 'Returned 6 for row 7');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Add Node method tests
+       */
+      
+      module('Add Node method');
+      
+      test('Invoking addNode on an element that is not a plugin instance should throw an error', function() {
+        raises(function() {
+          $('#outliner tbody').bgOutliner('addNode');
+        }, 'Error was thrown');
+      });
+      
+      test('Invoking addNode with an argument that is not a direct child of an instance should throw an error', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        raises(function() {
+          $('#outliner tbody').bgOutliner('addNode', $('#header-row'));
+        }, 'Error was thrown');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Invoking addNode with an argument that is a direct child of an instance should return a reference to the instance', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        ok($('#outliner tbody').bgOutliner('addNode', $('#row1')).is('#outliner tbody'), 'Reference to self was returned');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('If addNode is called on row 1, a row with id "row9" should be added as the second row in the instance, with correct classes', function() {
+        expect(4);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        $('#outliner tbody').bgOutliner('addNode', $('#row1'));
+        equal($('#outliner tbody').find('tr:eq(1)').attr('id'), $('#row9').attr('id'), 'The new node was inserted directly after row 1');
+        equal($('#outliner tbody').bgOutliner('getLevel', $('#row9')), 1, 'The new nodes level was set to 1');
+        equal($('#outliner tbody').bgOutliner('getParent', $('#row9')), 1, 'The new nodes parent was set to row 1');
+        ok($('#outliner tbody').bgOutliner('hasChildren', $('#row1')), 'Row 1 has a class that indicates it has child rows');
+        
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('If addNode is called on a collapsed node, that node should be expanded', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+      
+        // Toggle node 1 (should show descendants)
+        $('#outliner tbody').bgOutliner('toggleNode', $('#row1'));
+        equal($('#outliner tbody').find('tr.child-of-row5:visible').length, 0, 'Node 5 is collapsed');
+        
+        // Add node to row 5
+        $('#outliner tbody').bgOutliner('addNode', $('#row5'));
+        equal($('#outliner tbody').find('tr.child-of-row5:visible').length, 2, 'Node 5 is expanded and child was added');
         
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');

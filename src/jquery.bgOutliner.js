@@ -4,7 +4,7 @@
    * Name: bgOutliner
    * Author: Henrik Almér for AGoodId
    * Version: Alpha 2
-   * Last edited: Jan 14 2011
+   * Last edited: Jan 17 2011
    * Size: -- KB (minified -- KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested
@@ -14,14 +14,32 @@
    *               jQuery UI Droppable
    *
    * TODO: Make sure the drop indicator accurately reflects the drop
-   * TODO: Create prettier dialog boxes on faulty drops, maybe with ui.dialog?
+   * TODO: Create prettier dialog boxes on faulty drops, maybe with
+   *       ui.dialog?
    */
 
   var pluginName = 'bgOutliner';
 
   var config = {
     'addClass'              : 'add-child',
-    'childHtml'             : '<td class="%dataCellClass%"><span class="add-edit-icons"><a href="#" title="Add child" class="%addClass%"><img src="/pix/bgNestedSortable/add.gif" alt="Add child" width="12" height="12" /></a><a href="#" title="Edit node"><img src="/pix/bgNestedSortable/edit.gif" alt="Edit node" width="12" height="12" /></a></span><span class="%iconClass%"></span><span class="%dataClass%">Ny artikel</span></td><td></td><td></td>',
+    'childHtml'             : '<td class="%dataCellClass%">'
+                              + '<span class="add-edit-icons">'
+                              + '<a href="#" title="Add child"'
+                              + ' class="%addClass%">'
+                              + '<img src="'
+                              + '../images/add.gif" alt="Add child"'
+                              + ' width="12" height="12" />'
+                              + '</a>'
+                              + '</span>'
+                              + '<span class="%expColIconClass%">'
+                              + '</span>'
+                              + '<span class="%dataClass%">'
+                              + 'Ny artikel'
+                              + '</span>'
+                              + '</td>'
+                              + '<td></td>'
+                              + '<td></td>',
+    'childOfClassPrefix'    : 'child-of-',
     'collapsedClass'        : 'collapsed',
     'dataName'              : 'data',
     'dataClass'             : 'nested-data',
@@ -30,10 +48,13 @@
     'expandCollapse'        : true,
     'expandedClass'         : 'expanded',
     'expColIconClass'       : 'expand-collapse-icon',
+    'hasChildrenClass'      : 'has-children',
     'hoverClass'            : 'hover',
+    'idPrefix'              : 'row',
     'initHidden'            : true,
     'interval'              : 30,
-    'onAddChild'            : false,
+    'levelClassPrefix'      : 'level',
+    'onAddNode'             : false,
     'onAppend'              : false,
     'onBlur'                : false,
     'onDelete'              : false,
@@ -42,7 +63,6 @@
     'onInit'                : false,
     'onInsertBefore'        : false,
     'onInsertAfter'         : false,
-    'parentClass'           : 'has-children',
     'removeClass'           : 'remove-child',
     'tolerance'             : 1
   }; // End config
@@ -108,12 +128,12 @@
           initClass = settings.expandedClass;
         }
         $self
-          .find("tr[class*='" + settings.parentClass + "']")
+          .find("tr[class*='" + settings.hasChildrenClass + "']")
           .addClass(initClass);
 
         // Assign click handlers to expand/collapse-links
         $self
-        .find('tr.' + settings.parentClass + ' td.'
+        .find('tr.' + settings.hasChildrenClass + ' td.'
               + settings.dataCellClass + ' .'
               + settings.expColIconClass)
         .live('click.' + pluginName, function(e) {
@@ -155,7 +175,7 @@
 
         // Unbind live click handlers from expand/collapse links
         $self
-        .find('tr.' + settings.parentClass + ' td.'
+        .find('tr.' + settings.hasChildrenClass + ' td.'
               + settings.dataCellClass + ' .'
               + settings.expColIconClass)
         .die('click.' + pluginName);
@@ -199,27 +219,28 @@
      * a helper function to toggle visibility of child elements.
      *
      * CONTRACT
-     * Expected input: A table row that is a direct descendant to an
-     *                 instanced element.
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 table row that is a direct descendant to the
+     *                 supplied element.
      *
      * Return:         A reference to the instanced DOM element
      */
     
-    toggleNode: function($parent) {
+    toggleNode: function($node) {
       var $self = this;
     
       // Honor the contract
       assertInstanceOfBgOutliner($self);
-      assertChildOf($self, $parent);
+      assertChildOf($self, $node);
     
       // Toggle expandedClass and collapsedClass
-      $parent.toggleClass($self.data(pluginName)
-                          .settings.expandedClass);
-      $parent.toggleClass($self.data(pluginName)
-                          .settings.collapsedClass);
+      $node.toggleClass($self.data(pluginName)
+                        .settings.expandedClass);
+      $node.toggleClass($self.data(pluginName)
+                        .settings.collapsedClass);
 
       // Toggle visibility of descendants
-      $self.bgOutliner('toggleDescendants', $parent);
+      $self.bgOutliner('toggleDescendants', $node);
       
       return $self;
     },
@@ -229,62 +250,285 @@
      * recursively to toggle all children and grand-children.
      *
      * CONTRACT
-     * Expected input: A table row that is a direct descendant to an
-     *                 instanced element.
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 table row that is a direct descendant to the
+     *                 supplied element.
      *
      * Return:         A reference to the instanced DOM element
      */
 
-    toggleDescendants: function($parent) {
+    toggleDescendants: function($node) {
       var $self = this;
       
       // Honor the contract
       assertInstanceOfBgOutliner($self);
-      assertChildOf($self, $parent);
+      assertChildOf($self, $node);
 
       // Find already expanded children and store them
-      var idParent = $parent.attr('id');
-      var $expandedChildren = $self.find('.child-of-' + idParent + '.'
+      var sId = $node.attr('id');
+      var $expandedChildren = $self.find('.child-of-' + sId + '.'
                                         + $self.data(pluginName)
                                           .settings.expandedClass);
 
       // Call recursively to toggle all descendants
-      if (0 < $expandedChildren.length) {
+      if ($expandedChildren.length > 0) {
         $expandedChildren.each(function() {
           $self.bgOutliner('toggleDescendants', $(this));
         });
       }
       
       // Toggle all direct children
-      this.find('.child-of-' + idParent).each(function() {
+      this.find('.child-of-' + sId).each(function() {
         $(this).toggle();
       });
       
       return $self;
     }, // End methods.toggleChildren
 
-    addNode: function() {
+    /**
+     * Expands node
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 table row that is a direct descendant to the
+     *                 supplied element.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+
+    expandNode: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      if ($node.hasClass(settings.collapsedClass)) {
+        $self.bgOutliner('toggleNode', $node);
+      }
+      
+      return $self;
+    }, // End methods.expandNode
+    
+    /**
+     * Collapses node
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 table row that is a direct descendant to the
+     *                 supplied element.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+    
+    collapseNode: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      if ($node.hasClass(settings.expandedClass)) {
+        $self.bgOutliner('toggleNode', $node);
+      }
+      
+      return $self;
+    }, // End methods.collapseNode
+
+    /**
+     * Adds a new node to the instance. If a parent node is supplied the
+     * new node is added as the first child of that parent node.
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and an
+     *                 optional table row that is a direct descendant to
+     *                 the supplied element.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+
+    addNode: function($parent) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      if ($parent) {
+        assertChildOf($self, $parent);
+      }
+      
+      var $child,
+          iLevel,
+          iChildKey,
+          iCurKey,
+          sChildHtml,
+          sChildId,
+          sParentId;
+      
+      var settings = $self.data(pluginName).settings;
+      
+      // Get parent info
+      if ($parent) {
+        // Expand the parent node
+        $self.bgOutliner('expandNode', $parent);
+
+        // Get level and parent id
+        iLevel = $self.bgOutliner('getLevel', $parent) + 1;
+        sParentId = $parent.attr('id');
+      } else {
+        iLevel = 0;
+        sParentId = null;
+      }
+      
+      // Find the node with the highest id and add 1
+      iChildKey = 0;
+      $self.find('tr').each(function() {
+        iCurKey = parseInt($(this).attr('id')
+                    .substring(settings.idPrefix.length));
+        iChildKey = (iChildKey < iCurKey) ? iCurKey : iChildKey;
+      });
+      iChildKey++;
+      sChildId = settings.idPrefix + iChildKey.toString();
+      
+      // Generate HTML for child node
+      sChildHtml = settings.childHtml
+                    .replace(/%dataCellClass%/ig,
+                              settings.dataCellClass)
+                    .replace(/%addClass%/ig,
+                              settings.addClass)
+                    .replace(/%removeClass%/ig,
+                              settings.removeClass)
+                    .replace(/%expColIconClass%/ig,
+                              settings.expColIconClass)
+                    .replace(/%dataClass%/ig,
+                              settings.dataClass);
+      
+      // Create the child node
+      $child = $('<tr id="'
+                  + sChildId
+                  + '" class="'
+                  + settings.childOfClassPrefix
+                  + sParentId
+                  + ' '
+                  + settings.levelClassPrefix
+                  + iLevel
+                  + '">'
+                  + sChildHtml
+                  + '</tr>');
+      
+      // Insert the child node at the correct place in the instance            
+      $child.insertAfter($parent);
+      
+      // Call the onAddNode callback function, if it is defined
+      if ($.isFunction(settings.onAddNode)) {
+        settings.onAddNode.call(this);
+      }
+      
+      return $self;
     }, // End methods.addNode
 
-    removeNode: function() {
+    removeNode: function($node) {
     }, // End methods.removeNode
 
-    appendNode: function() {
+    appendNode: function($parent, $node) {
     }, // End methods.appendNode
 
-    insertBefore: function() {
+    insertBefore: function($target, $node) {
     }, // End methods.insertBefore
 
-    insertAfter: function() {
+    insertAfter: function($target, $node) {
     }, // End methods.insertBefore
 
     getDescendants: function() {
     }, // End methods.getDescendants
 
-    getParent: function() {
+    /**
+     * Gets the key part of the parent id for a child node
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         An integer representing the key of the provided
+     *                 nodes parent, or null if the node has no parent.
+     */
+
+    getParent: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var iKey,
+          iEndPos,
+          iStartPos,
+          sClass;
+      
+      var settings = $self.data(pluginName).settings;
+      
+      // Extract the key indicating the parent from the nodes class
+      sClass = $node.attr('class');
+      if (sClass.indexOf(settings.childOfClassPrefix) != -1) {
+        iStartPos = sClass.indexOf(settings.childOfClassPrefix)
+                      + settings.childOfClassPrefix.length
+                      + settings.idPrefix.length;
+        iEndPos = sClass.indexOf(' ', iStartPos);
+        
+        iKey = (iEndPos != -1) ? parseInt(sClass.substring(iStartPos,
+                                                           iEndPos))
+                               : parseInt(sClass.substring(iStartPos));
+      } else {
+        iKey = null;
+      }
+    
+      return iKey;
     }, // End methods.getParent
 
-    getLevel: function() {
+    /**
+     * Gets the level of a node that is a child to an instance
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         An integer representing the supplied rows level
+     */
+
+    getLevel: function($parent) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $parent);
+      
+      var iLevel,
+          iEndPos,
+          iStartPos,
+          sLevelClass,
+          settings;
+      
+      settings = $self.data(pluginName).settings;
+      
+      // Parse level class
+      sLevelClass = $parent.attr('class');
+      iStartPos = sLevelClass.indexOf(settings.levelClassPrefix)
+                                      + settings.levelClassPrefix
+                                        .length;
+      iEndPos = sLevelClass.indexOf(' ', iStartPos);
+
+      iLevel = (-1 != iEndPos) ? parseInt(sLevelClass
+                                            .substring(iStartPos,
+                                                        iEndPos))
+                               : parseInt(sLevelClass
+                                            .substring(iStartPos));
+
+      return iLevel;
     }, // End methods.getLevel
 
     setDescendants: function() {
@@ -294,7 +538,31 @@
     }, // End methods.setParent
 
     setLevel: function() {
-    } // End methods.setLevel
+    }, // End methods.setLevel
+    
+    /**
+     * Method for checking if a node has children
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         A boolean value that is true if the node has
+     *                 children and false if not.
+     */
+    
+    hasChildren: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+
+      return $node.hasClass(settings.hasChildrenClass);
+    } // End methods.hasChildren
   }; // End methods
 
   /**
@@ -358,8 +626,8 @@
    * Return:         True on success. Throws error otherwise.
    */
   
-  var assertChildOf = function($instance, $row) {  
-    if (!$row.parent().is('#' + $instance.attr('id'))) {
+  var assertChildOf = function($instance, $node) {  
+    if (!$node.parent().is('#' + $instance.attr('id'))) {
       throw new Error('jQuery.'
                       + pluginName
                       + ' Error. Element is not child of instanced'
