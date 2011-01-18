@@ -436,7 +436,10 @@
             $child.insertAfter($parent);
           } else {
             // Find the last child of the parent node
-            $lastChild = $self.find('.' + settings.childOfClassPrefix + sParentId + ':last');            
+            $lastChild = $self.find('.'
+                                    + settings.childOfClassPrefix
+                                    + sParentId
+                                    + ':last');
             $child.insertAfter($lastChild);
           }
         } else {
