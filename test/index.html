@@ -600,6 +600,60 @@
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
       });
+      
+      /**
+       * Get Family method tests
+       */
+
+      module('Get Family method');
+      
+      test('Calling getFamily on row 1 should return rows 1, 12, 2, 14 and 8', function() {
+        expect(5);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        var $descendants = $('#outliner tbody').bgOutliner('getFamily', $('#row1'));
+        equal($descendants[0].attr('id'), 'row1', 'Row 1 was in the collection at the right place');
+        equal($descendants[1].attr('id'), 'row12', 'Row 12 was in the collection at the right place');
+        equal($descendants[2].attr('id'), 'row2', 'Row 2 was in the collection at the right place');
+        equal($descendants[3].attr('id'), 'row14', 'Row 14 was in the collection at the right place');
+        equal($descendants[4].attr('id'), 'row8', 'Row 8 was in the collection at the right place');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Calling getFamily on row 11 should return row 11', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        var $descendants = $('#outliner tbody').bgOutliner('getFamily', $('#row11'));
+        equal($descendants[0].attr('id'), 'row11', 'Row 11 was in the collection at the right place');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Append Node method tests
+       */
+
+      module('Append Node method');
+      
+      test('Calling appendNode on row 2 to row 11 should move row 2 as a child to row 11', function() {
+        expect(2);
+      
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        $('#outliner tbody').bgOutliner('appendNode', $('#row11'), $('#row2'));
+        equal( $('#outliner tbody').bgOutliner('getParent', $('#row2')), 11, 'Row 2 has row 11 as parent' );
+        equal( $('#outliner tbody').find('#row2').next().attr('id'), 'row14', 'Row 2\'s child (row 14) was moved with row 2' );
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
     });
     // ]]>
   </script>

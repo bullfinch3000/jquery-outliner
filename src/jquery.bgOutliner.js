@@ -99,7 +99,7 @@
           throw new Error('jQuery.'
                           + pluginName
                           + ' Init Error. Supplied element is already'
-                          + ' and instance of jQUery.'
+                          + ' and instance of jQuery.'
                           + pluginName);
         }
         if ($self.children('tr').length <= 0) {
@@ -429,24 +429,10 @@
       
       // Insert the child node at the correct place in the instance
       if ($parent) {
-        // Does this node already have children?
-        if ($parent.hasClass(settings.hasChildrenClass)) {
-          // Insert at top or bottom?
-          if (settings.prepend) {
-            $child.insertAfter($parent);
-          } else {
-            // Find the last child of the parent node
-            $lastChild = $self.find('.'
-                                    + settings.childOfClassPrefix
-                                    + sParentId
-                                    + ':last');
-            $child.insertAfter($lastChild);
-          }
-        } else {
-          $child.insertAfter($parent);
-          $parent.addClass(settings.hasChildrenClass);
-        }
+        // Add to existing node
+        $self.bgOutliner('appendNode', $parent, $child);
       } else {
+        // Add at root level
         if (settings.prepend) {
           $self.prepend($child);
         } else {
@@ -497,7 +483,60 @@
       return $self;
     }, // End methods.removeNode
 
+    /**
+     * Appends a node to another node
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, a table
+     *                 row that is a direct descendant to the supplied
+     *                 element and one more table row that should be
+     *                 appended to the target node.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+
     appendNode: function($target, $node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $target);
+      
+      var $family = [$node],
+          targetIndex = $target.index();
+      
+      var settings = $self.data(pluginName).settings;
+      
+      // Is this an existing node?
+      if ($node.parent().is('#' + $self.attr('id'))) {
+        $family = $self.bgOutliner('getFamily', $node);
+        $self.bgOutliner('setParent', $target, $node);
+      }
+
+      // Does the target node already have children?
+      if ($target.hasClass(settings.hasChildrenClass)) {
+        // Insert at top or bottom?
+        if (!settings.prepend) {
+          // Find the last child of the target node
+          $lastChild = $self.find('.'
+                                  + settings.childOfClassPrefix
+                                  + $target.attr('id')
+                                  + ':last');
+          targetIndex = $lastChild.index();
+        }
+      } else {
+        $target.addClass(settings.hasChildrenClass);
+      }
+
+      // Insert the elements
+      $.each($family, function() {
+        $(this).insertAfter($self.find('tr:eq(' + targetIndex + ')'));
+        targetIndex++;
+      });
+    
+      if ($.isFunction(settings.onAppend)) {
+        settings.onAppend.call(this);
+      }
     }, // End methods.appendNode
 
     insertBefore: function($target, $node) {
@@ -506,8 +545,46 @@
     insertAfter: function($target, $node) {
     }, // End methods.insertBefore
 
-    getDescendants: function() {
-    }, // End methods.getDescendants
+    /**
+     * Runs recursively to get a node with all of its descendants
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         An collection of DOM elements containing the
+     *                 given node and all of its descendants.
+     */
+
+    getFamily: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      var $family = [$node],
+          $descendants = [];
+
+      $self
+      .find('.' + settings.childOfClassPrefix + $node.attr('id'))
+      .each(function() {      
+        if ($(this).hasClass(settings.hasChildrenClass)) {
+          $descendants = $self.bgOutliner('getFamily', $(this));
+
+          $.each($descendants, function() {
+            $family.push($(this));
+          });
+        } else {
+          $family.push($(this));
+        }
+      });
+      
+      return $family
+    }, // End methods.getFamily
 
     /**
      * Gets the key part of the parent id for a child node
@@ -577,7 +654,7 @@
           sLevelClass,
           settings;
       
-      settings = $self.data(pluginName).settings;
+      var settings = $self.data(pluginName).settings;
       
       // Parse level class
       sLevelClass = $parent.attr('class');
@@ -598,7 +675,47 @@
     setDescendants: function() {
     }, // End methods.setDescendants
 
-    setParent: function() {
+    /**
+     * Sets the parent class for a node
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance and two
+     *                 table row that are direct descendants to the
+     *                 supplied element.
+     *
+     * Return:         A reference to the instance.
+     */
+
+    setParent: function($parent, $node) {
+      var $self = this;
+      
+      // Honor contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $parent);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+
+      // Parse the current parent class and remove it
+      var parentClass = $node.attr('class');
+      
+      var iStartPos = parentClass.indexOf(settings.childOfClassPrefix);
+      var iEndPos = parentClass.indexOf(' ', iStartPos);
+
+      if (-1 == iStartPos) {
+        parentClass = false;
+      } else {
+        parentClass = (-1 != iEndPos) ? parentClass.substring(iStartPos, iEndPos)
+                                      : parentClass.substring(iStartPos);
+      }
+      $node.removeClass(parentClass);
+      
+      // Add the new parent class
+      if ($parent.length > 0) {
+        $node.addClass(settings.childOfClassPrefix + $parent.attr('id'));
+      }
+      
+      return $self;
     }, // End methods.setParent
 
     setLevel: function() {
