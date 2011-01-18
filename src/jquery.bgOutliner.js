@@ -63,6 +63,7 @@
     'onInit'                : false,
     'onInsertBefore'        : false,
     'onInsertAfter'         : false,
+    'prepend'               : false,
     'removeClass'           : 'remove-child',
     'tolerance'             : 1
   }; // End config
@@ -428,10 +429,26 @@
       
       // Insert the child node at the correct place in the instance
       if ($parent) {
-        $child.insertAfter($parent);
-        $parent.addClass(settings.hasChildrenClass);
+        // Does this node already have children?
+        if ($parent.hasClass(settings.hasChildrenClass)) {
+          // Insert at top or bottom?
+          if (settings.prepend) {
+            $child.insertAfter($parent);
+          } else {
+            // Find the last child of the parent node
+            $lastChild = $self.find('.' + settings.childOfClassPrefix + sParentId + ':last');            
+            $child.insertAfter($lastChild);
+          }
+        } else {
+          $child.insertAfter($parent);
+          $parent.addClass(settings.hasChildrenClass);
+        }
       } else {
-        $self.prepend($child);
+        if (settings.prepend) {
+          $self.prepend($child);
+        } else {
+          $self.append($child);
+        }
       }
       
       // Call the onAddNode callback function, if it is defined
