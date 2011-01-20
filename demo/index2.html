@@ -2,9 +2,8 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><html>
-	<title>jquery.bgOutliner.js – Tests</title>
+	<title>jquery.bgOutliner.js – Demo</title>
 	<link rel="stylesheet" media="all" href="../css/bgNestedSortable.css" />
-  <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
 </head>
 <body>
   <!--Example tree structure-->
@@ -16,12 +15,12 @@
 				<th>Publicerad</th>
 			</tr>
 		</thead>
-		<tbody id="outliner-tbody">
+		<tbody id="outliner-tbody" style="background: transparent url(../images/outlinergrid.png) repeat-y -8px 0;">
 			<tr id="row1" class="has-children level0">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -35,8 +34,8 @@
 			<tr id="row2" class="child-of-row1 level1">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -50,8 +49,8 @@
 			<tr id="row3" class="child-of-row1 has-children level1">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -65,8 +64,8 @@
 			<tr id="row4" class="child-of-row3 level2">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -80,8 +79,8 @@
 			<tr id="row5" class="has-children child-of-row3 level2">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -95,8 +94,8 @@
 			<tr id="row6" class="has-children child-of-row5 level3">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -110,8 +109,8 @@
 			<tr id="row7" class="child-of-row6 level4">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">

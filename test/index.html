@@ -20,7 +20,8 @@
 			<tr id="row1" class="has-children level0">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -34,7 +35,8 @@
 			<tr id="row2" class="child-of-row1 level1">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -48,7 +50,8 @@
 			<tr id="row3" class="child-of-row1 has-children level1">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -62,7 +65,8 @@
 			<tr id="row4" class="child-of-row3 level2">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -76,7 +80,8 @@
 			<tr id="row5" class="has-children child-of-row3 level2">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -90,7 +95,8 @@
 			<tr id="row6" class="has-children child-of-row5 level3">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -104,7 +110,8 @@
 			<tr id="row7" class="child-of-row6 level4">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -225,11 +232,11 @@
         $('#outliner tbody').bgOutliner();
         
         $('#outliner tbody').bgOutliner('updateSettings',
-                                        {'expandedClass': 'testClass'});
+                                        {'edit': false});
         equal($('#outliner tbody')
                 .data('bgOutliner')
-                .settings.expandedClass,
-              'testClass',
+                .settings.edit,
+              false,
               'Settings were updated');
         
         // Destroy instance
@@ -461,14 +468,14 @@
         $('#outliner tbody').bgOutliner('destroy');
       });
       
-      test('If addNode is called on row 1, a row with id "row9" should be added as the fifth row in the instance, with correct classes', function() {
+      test('If addNode is called on row 1, a row with id "row9" should be added as the nineth row in the instance, with correct classes', function() {
         expect(4);
       
         // Create instance
         $('#outliner tbody').bgOutliner();
       
         $('#outliner tbody').bgOutliner('addNode', $('#row1'));
-        equal($('#outliner tbody').find('tr:eq(4)').attr('id'), $('#row9').attr('id'), 'The new node was inserted as last child of row 1');
+        equal($('#outliner tbody').find('tr:eq(8)').attr('id'), $('#row9').attr('id'), 'The new node was inserted as last child of row 1');
         equal($('#outliner tbody').bgOutliner('getLevel', $('#row9')), 1, 'The new nodes level was set to 1');
         equal($('#outliner tbody').bgOutliner('getParent', $('#row9')), 1, 'The new nodes parent was set to row 1');
         ok($('#outliner tbody').bgOutliner('hasChildren', $('#row1')), 'Row 1 has a class that indicates it has child rows');
@@ -476,7 +483,7 @@
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
       });
-      
+
       test('If addNode is called without an argument, a root level node should be added', function() {
         expect(3);
       
@@ -508,6 +515,8 @@
       });
       
       test('If addNode is called on a collapsed node, that node should be expanded', function() {
+        expect(3);
+      
         // Create instance
         $('#outliner tbody').bgOutliner();
       
@@ -518,11 +527,12 @@
         // Add node to row 5
         $('#outliner tbody').bgOutliner('addNode', $('#row5'));
         equal($('#outliner tbody').find('tr.child-of-row5:visible').length, 2, 'Node 5 is expanded and child was added');
+        equal($('#outliner tbody').find('#row5').hasClass('expanded'), true, 'Node 5 was given the expanded class');
         
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
       });
-      
+
       test('If addNode is called to add a child to another node, that parent node should get the hasChildren class', function() {
         // Create instance
         $('#outliner tbody').bgOutliner();
@@ -601,6 +611,19 @@
         $('#outliner tbody').bgOutliner('destroy');
       });
       
+      test('If a node that is an only child is removed, the hasChildren class should be removed from its parent', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        $('#outliner tbody').bgOutliner('addNode');
+        $('#outliner tbody').bgOutliner('addNode', $('#row15'));
+        $('#outliner tbody').bgOutliner('removeNode', $('#row16'));
+        equal($('#row15').hasClass('has-children'), false, 'Row 15 does not have the hasChildren class');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
       /**
        * Get Family method tests
        */
@@ -650,6 +673,42 @@
         $('#outliner tbody').bgOutliner('appendNode', $('#row11'), $('#row2'));
         equal( $('#outliner tbody').bgOutliner('getParent', $('#row2')), 11, 'Row 2 has row 11 as parent' );
         equal( $('#outliner tbody').find('#row2').next().attr('id'), 'row14', 'Row 2\'s child (row 14) was moved with row 2' );
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      /**
+       * Get Drop Positions For Level method
+       */
+      
+      module('Get Drop Positions For Level method');
+      
+      test('Calling getDropPositionsForLevel with "0" as argument should return the list [0,1,4,7]', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        deepEqual($('#outliner tbody').bgOutliner('getDropPositionsForLevel', 0), [0,1,4,7], 'List matched expectations');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Calling getDropPositionsForLevel with "1" as argument should return the list [1,2,4,5,6,7]', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        deepEqual($('#outliner tbody').bgOutliner('getDropPositionsForLevel', 1), [1,2,4,5,6,7], 'List matched expectations');
+
+        // Destroy instance
+        $('#outliner tbody').bgOutliner('destroy');
+      });
+      
+      test('Calling getDropPositionsForLevel with "2" as argument should return the list [3,4,6,7]', function() {
+        // Create instance
+        $('#outliner tbody').bgOutliner();
+        
+        deepEqual($('#outliner tbody').bgOutliner('getDropPositionsForLevel', 2), [3,4,6,7], 'List matched expectations');
 
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');

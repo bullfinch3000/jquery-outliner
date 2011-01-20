@@ -2,9 +2,11 @@
 
   /**
    * Name: bgOutliner
-   * Author: Henrik Almér for AGoodId
-   * Version: Alpha 2
-   * Last edited: Jan 17 2011
+   * Author: Henrik Almér <henrik@agoodid.se>
+   * Company: AGoodId
+   * URL: http://www.agoodid.se
+   * Version: Alpha 3
+   * Last edited: Jan 18 2011
    * Size: -- KB (minified -- KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested
@@ -14,6 +16,7 @@
    *               jQuery UI Droppable
    *
    * TODO: Make sure the drop indicator accurately reflects the drop
+   * TODO: Make the element to be used as draghandle a user setting
    * TODO: Create prettier dialog boxes on faulty drops, maybe with
    *       ui.dialog?
    */
@@ -21,14 +24,20 @@
   var pluginName = 'bgOutliner';
 
   var config = {
-    'addClass'              : 'add-child',
+    'addClass'              : 'add-node',
     'childHtml'             : '<td class="%dataCellClass%">'
                               + '<span class="add-edit-icons">'
-                              + '<a href="#" title="Add child"'
+                              + '<a href="#" title="Add node"'
                               + ' class="%addClass%">'
                               + '<img src="'
-                              + '../images/add.gif" alt="Add child"'
+                              + '../images/add.gif" alt="Add node"'
                               + ' width="12" height="12" />'
+                              + '</a>'
+                              + '<a href="#" title="Remove node"'
+                              + ' class="%removeClass%">'
+                              + '<img src="'
+                              + '../images/trash.gif" alt="Remove node"'
+                              + ' width="16" height="16" />'
                               + '</a>'
                               + '</span>'
                               + '<span class="%expColIconClass%">'
@@ -45,12 +54,14 @@
     'dataClass'             : 'nested-data',
     'dataCellClass'         : 'nested-data-cell',
     'dragAndDrop'           : true,
+    'edit'                  : true,
     'expandCollapse'        : true,
     'expandedClass'         : 'expanded',
     'expColIconClass'       : 'expand-collapse-icon',
     'hasChildrenClass'      : 'has-children',
     'hoverClass'            : 'hover',
     'idPrefix'              : 'row',
+    'indent'                : 20,
     'initHidden'            : true,
     'interval'              : 30,
     'levelClassPrefix'      : 'level',
@@ -64,7 +75,7 @@
     'onInsertBefore'        : false,
     'onInsertAfter'         : false,
     'prepend'               : false,
-    'removeClass'           : 'remove-child',
+    'removeClass'           : 'remove-node',
     'tolerance'             : 1
   }; // End config
 
@@ -131,6 +142,11 @@
         $self
           .find("tr[class*='" + settings.hasChildrenClass + "']")
           .addClass(initClass);
+        
+        // Iterate over all nodes and set their indentaion level
+        $self.find('tr').each(function() {
+          $self.bgOutliner('setIndentation', $(this));
+        });
 
         // Assign click handlers to expand/collapse-links
         $self
@@ -143,10 +159,17 @@
           e.preventDefault();
         });
         
-        // Make hover event toggle a hover class
-        $self.find('tr').live('hover.' + pluginName, function(e) {
-          $(this).toggleClass(settings.hoverClass);
+        // Make mousover/mousout events toggle a hover class
+        $self.find('tr').live('mouseover.' + pluginName, function(e) {
+          $(this).addClass(settings.hoverClass);
+        }).live('mouseout.' + pluginName, function(e) {
+          $(this).removeClass(settings.hoverClass);
         });
+        
+        // Do further init setups for editing of nodes, if edit is true
+        if (settings.edit == true) {
+          $self.bgOutliner('initEdit');
+        }
 
         // Call the onInit callback function, if it is defined
         if ($.isFunction(settings.onInit)) {
@@ -154,13 +177,256 @@
         }
       });
     }, // End methods.init
+    
+    /**
+     * Initiates the editing (drag and drop) capabilities of the
+     * outliner. Should be called by the init method if the edit setting
+     * is set to true.
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance
+     *
+     * Return:         A reference to the supplied DOM element
+     */
+    
+    initEdit: function() {
+      var $self = this;
+
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+
+      // Alias data and settings
+      var data = $self.data(pluginName),
+          settings = data.settings;
+      
+      /**
+       * Create drop indicator
+       */
+      
+      var dropIndicatorHtml = '<div class="drop-indicator-bar">'
+                              + '<div class="col-indicator">'
+                              + '<div class="thick-rule"></div>'
+                              + '</div>'
+                              + '<div class="row-indicator">'
+                              + '<div class="thin-rule"></div>'
+                              + '</div>'
+                              + '</div>';
+
+      data.dropIndicator = $(dropIndicatorHtml);
+      $('body').append(data.dropIndicator);
+
+      // Set position and width of drop indicator
+      data.dropIndicator.offset($self.offset());
+      data.dropIndicator.width($self.outerWidth());
+      
+      var hoveredLevel,
+          hoveredRow,
+          hoveredRowLevel,
+          lastMousePos = { x: 0, y: 0 },
+          lastRun = 0,
+          relativeDropPos,
+          targetLevel,
+          targetPosition = {top: 0, left: 0},
+          targetRow,
+          thisMousePos,
+          thisRun = 0;
+
+      // Get the base indent (the number of pixels from the left edge of
+      // the instance to the level 0 expand collapse icon)
+      data.leftColumn = $self
+                        .find('tr:first .' + settings.expColIconClass)
+                        .offset().left;
+
+      /**
+       * Define settings for jQuery UI Draggable & Droppable
+       */
+
+      var draggableConfig = {
+        appendTo        : 'body',
+        revert          : 'invalid',
+        revertDuration  : 0,
+        drag: function(e, ui) {
+
+          /**
+           * Drag function. Determines what action to take when dragging
+           * stops. We need this information in orde be able to show a
+           * correctly positioned drop indicator.
+           *
+           * CONTRACT
+           * Expected input: A jQuery event and a reference to the UI
+           *                 object.
+           *
+           * Return:         –
+           */
+
+          // Check for throttling
+          thisRun = new Date().getTime();
+          if(settings.interval > thisRun - lastRun ) {
+            return;
+          }
+          lastRun = thisRun;
+
+          // Check if mouse position has changed
+          thisMousePos = { x: e.pageX, y: e.pageY };
+          if (lastMousePos.x == thisMousePos.x
+              &&
+              lastMousePos.y == thisMousePos.y ) {
+            return;
+          }
+
+          lastMousePos = thisMousePos;
+
+          hoveredRow = $self.find('.ui-droppable-hover');
+
+          /**
+           * Determine at what level the user wants to drop the node.
+           * We do this by defining columns that are as wide as the
+           * indent setting and checking which column the mouse is in.
+           */
+
+          relativeDropPos = thisMousePos.x - data.leftColumn;
+          if (relativeDropPos <= 0) {
+            hoveredLevel = 0;
+          } else {
+            hoveredLevel = relativeDropPos/settings.indent;
+          }
+          hoveredLevel = parseInt(hoveredLevel);
+          
+          // Make sure that the level is no more than one level higher
+          // than the target level.
+          if (hoveredRow.length > 0) {
+            hoveredRowLevel = $self.bgOutliner('getLevel', hoveredRow);
+            if (hoveredLevel > hoveredRowLevel + 1) {
+              hoveredLevel = hoveredRowLevel + 1;
+            }
+          } else {
+            hoveredLevel = 0;
+          }
+          
+          // Get droppable positions
+          data.dropPositions =
+            $self.bgOutliner('getDropPositionsForLevel', hoveredLevel);
+
+          // Determine closest candidate for drop
+          $.each(data.dropPositions, function(ix, pos) {
+            if (hoveredRow.index() <= pos) {
+              targetRow = $self.find('tr:eq(' + (pos - 1) + ')');
+              return false;
+            }
+          });
+          targetLevel = hoveredLevel;
+          
+          /**
+           * Determine target rows position, settings the top variable
+           * to be the bottom of the target row and the left variable to
+           * the left side of the instanced DOM element.
+           */
+
+          if (targetRow.length > 0) {
+            targetPosition.top = parseInt(targetRow.offset().top
+                                      + targetRow.height()
+                                      - (data.dropIndicator.height()/2));
+            targetPosition.left = $self.offset().left;
+            
+            // Show/Update drop indicator
+            $self.bgOutliner('showDropIndicator',
+                              targetPosition,
+                              targetLevel);
+
+            // Store information about the target row in the data object
+            data.targetRow = targetRow;
+            data.targetLevel = targetLevel;
+          }
+        },
+        stop: function(e, ui) {
+
+          /**
+           * Stop function
+           */
+          
+          $self.bgOutliner('hideDropIndicator');
+        },
+        helper: function(e, ui) {
+
+          /**
+           * Helper function. Takes a dragged row and clones it to a new
+           * table in a div. This enables us to show the dragged element
+           * on screen while it's dragged.
+           *
+           * CONTRACT
+           * Expected input: A jQuery event and a reference to the UI
+           *                 object.
+           *
+           * Return:         A DOM element containing a table with the 
+           *                 dragged nodes.
+           */
+          
+          var $helper = $('<div class="nested-table-item-dragging">'
+                          + '<table class="nested-sortable"></table>'
+                          + '</div>')
+                        .find('table')
+                        .append($(e.target).closest('tr')
+                                .clone()
+                                .removeClass($self.data(pluginName)
+                                              .settings.hoverClass));
+          
+          return $helper;
+        }
+      }, droppableConfig = {
+        tolerance:    'pointer',
+        activeClass:  'ui-droppable-active',
+        hoverClass:   'ui-droppable-hover',
+        drop:         function() {}
+      };
+      
+      /**
+       * Initiate jQuery UI Draggable & Droppable
+       */
+      
+      $self
+      .find('tr')
+      .draggable(draggableConfig)
+      .droppable(droppableConfig)
+      .data(pluginName, true);
+      
+      // Init Draggable & Droppable on live elements
+      $self.find('tr').live('hover', function() {
+        if ($(this).data(pluginName) != true) {
+          $(this).data(pluginName, true);
+          $(this).draggable(draggableConfig).droppable(droppableConfig);
+        }
+      });
+
+      /**
+       * Bind click handlers for adding and removing nodes
+       */
+      
+      $self
+      .find('td.' + config.dataCellClass + ' .' + config.addClass)
+      .live('click.' + pluginName, function(e) {        
+        // Add a node as child to the clicked node
+        var childId = $self.bgOutliner('addNode',
+                                        $(this).closest('tr'));
+      });
+      
+      $self
+      .find('td.' + config.dataCellClass + ' .' + config.removeClass)
+      .live('click.' + pluginName, function(e) {        
+        // Remove node
+        var childId = $self.bgOutliner('removeNode',
+                                        $(this).closest('tr'));
+      });
+
+      return $self;
+    }, // End methods.initEdit
 
     /**
      * Method for destroying an instance of this plugin. Removes all
      * plugin data and all bound events.
      *
      * CONTRACT
-     * Expected input: A DOM element that is a plugin instance
+     * Expected input: A collection of DOM elements that are a plugin
+     *                 instances.
      *
      * Return:         A reference to the supplied DOM element
      */
@@ -172,7 +438,7 @@
 
         assertInstanceOfBgOutliner($self);
 
-        settings = $self.data(pluginName).settings;
+        var settings = $self.data(pluginName).settings;
 
         // Unbind live click handlers from expand/collapse links
         $self
@@ -183,6 +449,11 @@
         
         // Unbind hover event
         $self.find('tr').die('hover.' + pluginName);
+        
+        // Remove drop indicator, if it has been added
+        if (data.dropIndicator) {
+          data.dropIndicator.remove();
+        }
 
         // Call the onDestroy callback function, if it is defined
         if ($.isFunction($self.data(pluginName).settings.onDestroy)) {
@@ -310,6 +581,11 @@
         $self.bgOutliner('toggleNode', $node);
       }
       
+      // Add the expanded class
+      $node
+      .removeClass(settings.collapsedClass)
+      .addClass(settings.expandedClass);
+      
       return $self;
     }, // End methods.expandNode
     
@@ -336,6 +612,11 @@
       if ($node.hasClass(settings.expandedClass)) {
         $self.bgOutliner('toggleNode', $node);
       }
+      
+      // Add the collapsed class
+      $node
+      .removeClass(settings.expandedClass)
+      .addClass(settings.collapsedClass);
       
       return $self;
     }, // End methods.collapseNode
@@ -468,6 +749,20 @@
 
       var settings = $self.data(pluginName).settings;
 
+      var iParent = $self.bgOutliner('getParent', $node);
+      var $siblings = $self
+                      .find('.' + settings.childOfClassPrefix
+                            + settings.idPrefix
+                            + iParent);
+
+      // Check if the hasChildren class should be removed on the nodes
+      // parent element
+      if ($siblings.length <= 1) {
+        $self
+        .find('#' + settings.idPrefix + iParent)
+        .removeClass(settings.hasChildrenClass);
+      }
+
       // Remove all descendants
       if ($node.hasClass(settings.hasChildrenClass)) {
         $self
@@ -478,7 +773,7 @@
       }
 
       // Remove node
-      $node.remove();
+      $node.remove();      
 
       return $self;
     }, // End methods.removeNode
@@ -503,6 +798,8 @@
       assertChildOf($self, $target);
       
       var $family = [$node],
+          $targetFamily,
+          $lastDescendant,
           targetIndex = $target.index();
       
       var settings = $self.data(pluginName).settings;
@@ -517,20 +814,20 @@
       if ($target.hasClass(settings.hasChildrenClass)) {
         // Insert at top or bottom?
         if (!settings.prepend) {
-          // Find the last child of the target node
-          $lastChild = $self.find('.'
-                                  + settings.childOfClassPrefix
-                                  + $target.attr('id')
-                                  + ':last');
-          targetIndex = $lastChild.index();
+          // Find the last descendant of the target node
+          $targetFamily = $self.bgOutliner('getFamily', $target);
+          $lastDescendant = $targetFamily[$targetFamily.length - 1];
+          targetIndex = $lastDescendant.index();
         }
       } else {
         $target.addClass(settings.hasChildrenClass);
+        $self.bgOutliner('expandNode', $target);
       }
 
       // Insert the elements
       $.each($family, function() {
         $(this).insertAfter($self.find('tr:eq(' + targetIndex + ')'));
+        $self.bgOutliner('setIndentation', $(this));
         targetIndex++;
       });
     
@@ -641,12 +938,12 @@
      * Return:         An integer representing the supplied rows level
      */
 
-    getLevel: function($parent) {
+    getLevel: function($node) {
       var $self = this;
       
       // Honor the contract
       assertInstanceOfBgOutliner($self);
-      assertChildOf($self, $parent);
+      assertChildOf($self, $node);
       
       var iLevel,
           iEndPos,
@@ -657,7 +954,7 @@
       var settings = $self.data(pluginName).settings;
       
       // Parse level class
-      sLevelClass = $parent.attr('class');
+      sLevelClass = $node.attr('class');
       iStartPos = sLevelClass.indexOf(settings.levelClassPrefix)
                                       + settings.levelClassPrefix
                                         .length;
@@ -671,9 +968,6 @@
 
       return iLevel;
     }, // End methods.getLevel
-
-    setDescendants: function() {
-    }, // End methods.setDescendants
 
     /**
      * Sets the parent class for a node
@@ -717,9 +1011,36 @@
       
       return $self;
     }, // End methods.setParent
+    
+    /**
+     * Method that sets the indentation level for a node
+     *
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         A reference to the instance.
+     */
 
-    setLevel: function() {
-    }, // End methods.setLevel
+    setIndentation: function($node) {
+      var $self = this;
+
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      var margin = settings.indent * $self.bgOutliner('getLevel',
+                                                      $node);
+      
+      $node
+      .find('.' + settings.dataCellClass + ' .'
+            + settings.expColIconClass)
+      .css('margin-left', margin + 'px');
+
+      return $self;
+    }, // End methods.setIndentation
     
     /**
      * Method for checking if a node has children
@@ -743,7 +1064,127 @@
       var settings = $self.data(pluginName).settings;
 
       return $node.hasClass(settings.hasChildrenClass);
-    } // End methods.hasChildren
+    }, // End methods.hasChildren
+    
+    /**
+     * Shows a horizontal rule, indicating where a dragged element will
+     * be placed once it is dropped.
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, a tuple
+     *                 representing an absolute position on screen and
+     *                 an integer representing the level to drop at.
+     *
+     * Return:         A reference to the instance
+     */
+    
+    showDropIndicator: function(tPosition, iLevel) {
+      var $self = this;
+
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+
+      var settings = $self.data(pluginName).settings;
+      
+      var baseIndent = $self.data(pluginName).leftColumn,
+          colIndicatorWidth = baseIndent
+            + (settings.indent * (iLevel));
+
+      // Show drop indicator
+      $self.data(pluginName).dropIndicator.show();
+
+      // Set vertical position of drop indicator
+      $self
+      .data(pluginName)
+      .dropIndicator
+      .css({position: 'absolute', top: tPosition.top, left: tPosition.left});
+      
+      // Adjust width of col-indicator and row-indicator to match the
+      // hovered level
+      $self.data(pluginName).dropIndicator
+        .find('.col-indicator')
+        .width(colIndicatorWidth);
+      $self.data(pluginName).dropIndicator
+        .find('.row-indicator')
+        .width($self.data(pluginName).dropIndicator.width()
+                - colIndicatorWidth);
+
+      return $self;
+    }, // End methods.showDropIndicator
+    
+    /**
+     * Hides the drop indicator
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance.
+     *
+     * Return:         A reference to the instance
+     */
+    
+    hideDropIndicator: function() {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      
+      $self.data(pluginName).dropIndicator.hide();
+      
+      return $self;
+    }, // End methods.hideDropIndicator
+    
+    /**
+     * Gets available drop position for the current level
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance.
+     *
+     * Return:         An array of possible drop positions
+     */
+    
+    getDropPositionsForLevel: function(iLevel) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      var positions = [],
+          $nodes,
+          $parentLevelNodes,
+          $nodeFamily;
+      
+      // Add all nodes at the current level to the collection
+      $nodes = $self.find('.' + settings.levelClassPrefix + iLevel);
+
+      if (iLevel > 0) {
+        // If not at root level, add positions from the parent level
+        $parentLevelNodes = $self.find('.'
+                                        + settings.levelClassPrefix
+                                        + (iLevel - 1));
+
+        $parentLevelNodes.each(function() {
+          positions.push($(this).index() + 1);
+        });
+      } else {
+        // If we are at root level, add the 0 position
+        positions.push(0);
+      }
+
+      $nodes.each(function() {
+        if ($self.bgOutliner('hasChildren', $(this))) {
+          $nodeFamily = $self.bgOutliner('getFamily', $(this));
+          positions.push($nodeFamily[$nodeFamily.length - 1]
+                          .index() + 1);
+        } else {
+          positions.push($(this).index() + 1);
+        }
+      });
+
+      return positions.unique().sort(function(a, b) {
+        return (a - b);
+      });
+    }, // End methods.getDropPositionsForLevel
   }; // End methods
 
   /**
@@ -812,9 +1253,32 @@
       throw new Error('jQuery.'
                       + pluginName
                       + ' Error. Element is not child of instanced'
-                      + 'element');
+                      + ' element');
     }
     
     return true;
   }; // End assertChildOf
 })(jQuery);
+
+/**
+ * Extend the array object with a "unique" method
+ *
+ * Source: http://www.martienus.com/code/
+ *         javascript-remove-duplicates-from-array.html
+ */
+
+Array.prototype.unique = function () {
+	var r = new Array();
+	o:for(var i = 0, n = this.length; i < n; i++)
+	{
+		for(var x = 0, y = r.length; x < y; x++)
+		{
+			if(r[x]==this[i])
+			{
+				continue o;
+			}
+		}
+		r[r.length] = this[i];
+	}
+	return r;
+}
