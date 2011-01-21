@@ -1254,7 +1254,7 @@
         }
       });
 
-      return positions.unique().sort(function(a, b) {
+      return arrayUnique(positions).sort(function(a, b) {
         return (a - b);
       });
     }, // End methods.getDropPositionsForLevel
@@ -1322,6 +1322,8 @@
           settings = data.settings;
       
       console.log(data.target, data.targetRow, data.targetLevel);
+      
+      
       
       return $self;
     } // End methods.handleDrop
@@ -1400,6 +1402,26 @@
   }; // End assertChildOf
   
   /**
+   * Utility function that allows removing of duplicates in an array
+   *
+   * Source: http://www.martienus.com/code/
+   *         javascript-remove-duplicates-from-array.html
+   */
+  
+  var arrayUnique = function(input) {
+    var r = new Array();
+    o:for(var i = 0, n = input.length; i < n; i++) {
+      for(var x = 0, y = r.length; x < y; x++) {
+        if(r[x]==input[i]) {
+          continue o;
+        }
+      }
+      r[r.length] = input[i];
+    }
+    return r;
+  };
+  
+  /**
    * Utility function that checks for the existance of a value in an
    * array
    */
@@ -1412,26 +1434,3 @@
     return o;
   }; // End oc
 })(jQuery);
-
-/**
- * Extend the array object with a "unique" method
- *
- * Source: http://www.martienus.com/code/
- *         javascript-remove-duplicates-from-array.html
- */
-
-Array.prototype.unique = function () {
-	var r = new Array();
-	o:for(var i = 0, n = this.length; i < n; i++)
-	{
-		for(var x = 0, y = r.length; x < y; x++)
-		{
-			if(r[x]==this[i])
-			{
-				continue o;
-			}
-		}
-		r[r.length] = this[i];
-	}
-	return r;
-}
