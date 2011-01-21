@@ -5,9 +5,9 @@
    * Author: Henrik Almér <henrik@agoodid.se>
    * Company: AGoodId
    * URL: http://www.agoodid.se
-   * Version: Alpha 3
-   * Last edited: Jan 19 2011
-   * Size: -- KB (minified -- KB)
+   * Version: Alpha 4
+   * Last edited: Jan 21 2011
+   * Size: 46 KB (minified -- KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested
    * structures presented in table form.
@@ -15,10 +15,13 @@
    * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable,
    *               jQuery UI Droppable
    *
-   * TODO: Make the element to be used as draghandle a user setting
-   * TODO: Make the droppable active and hover classes a user setting
+   * TODO: Make the element to be used as draghandle a user setting.
+   * TODO: Make the droppable active and hover classes a user setting.
    * TODO: Make sure the destroy method removes all data, event handlers
    *       and draggables and droppables.
+   * TODO: Add methods expandAll and collapseAll.
+   * TODO: Fix bug that shows an incorrect drop indicator when hovering
+   *       below a collapsed node.
    */
 
   var pluginName = 'bgOutliner';
@@ -465,7 +468,7 @@
       $self.find('tr').live('hover', function() {
         if ($(this).data(pluginName) != true) {
           $(this).data(pluginName, true);
-          $(this).draggable(draggableConfig).droppable(droppableConfig);
+          $(this).draggable(draggableConfig);
         }
       });
 
