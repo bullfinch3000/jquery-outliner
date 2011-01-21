@@ -340,7 +340,7 @@
             hoveredLevel =
               $self.bgOutliner('getLevel',
                                 $self.find('tr:eq('
-                                + data.invalidDropPositions[0]
+                                + (data.invalidDropPositions[0] - 1)
                                 + ')'));
           }
 
@@ -384,6 +384,7 @@
             data.target = 'after';
             data.targetRow = targetRow;
             data.targetLevel = targetLevel;
+            data.droppedNode = $(e.target);
           } else if (thisMousePos.y < data.topPosition) {
 
             /**
@@ -403,8 +404,9 @@
 
             // Store information about the target row in the data object
             data.target = 'before';
-            data.targetRow = targetRow;
+            data.targetRow = $self.find('tr:first');
             data.targetLevel = targetLevel;
+            data.droppedNode = $(e.target);
           }
         },
         stop: function(e, ui) {
@@ -417,7 +419,8 @@
           $self.bgOutliner('hideDropIndicator');
           
           // Save the new structure
-          $self.bgOutliner('handleDrop');
+          $self.bgOutliner('insertAt', data.targetRow, data.targetLevel,
+                            data.droppedNode, data.target);
         },
         helper: function(e, ui) {
 
@@ -907,11 +910,36 @@
       }
     }, // End methods.appendNode
 
-    insertBefore: function($target, $node) {
-    }, // End methods.insertBefore
+    /**
+     * Inserts a node at a given place in the hierarchy. Either before
+     * or after the target.
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance, a table
+     *                 row that is a direct descendant to the supplied
+     *                 element, an integer representing the level to
+     *                 insert at, one more table row that should be
+     *                 appended to the target node and a string
+     *                 indicating whether to insert the node before or
+     *                 after the target.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
 
-    insertAfter: function($target, $node) {
-    }, // End methods.insertBefore
+    insertAt: function($target, iInsertLevel, $node, sInsertPosition) {
+      var $self = this;
+
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $target);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      var iTargetLevel = $self.bgOutliner('getLevel', $target);
+      
+      return $self;
+    }, // End methods.insertAt
 
     /**
      * Runs recursively to get a node with all of its descendants
@@ -1311,7 +1339,7 @@
      *
      * Return:         A reference to the instance
      */
-    
+    /*
     handleDrop: function() {
       var $self = this;
       
@@ -1323,10 +1351,9 @@
       
       console.log(data.target, data.targetRow, data.targetLevel);
       
-      
-      
       return $self;
     } // End methods.handleDrop
+    */
   }; // End methods
 
   /**
