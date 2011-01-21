@@ -17,6 +17,9 @@
    *
    * TODO: Make sure the drop indicator accurately reflects the drop
    * TODO: Make the element to be used as draghandle a user setting
+   * TODO: Make the droppable active and hover classes a user setting
+   * TODO: Make sure the destroy method removes all data, event handlers
+   *       and draggables and droppables.
    */
 
   var pluginName = 'bgOutliner';
@@ -274,10 +277,28 @@ $('body').append('<div id="testarea"></div>');
               lastMousePos.y == thisMousePos.y ) {
             return;
           }
-
           lastMousePos = thisMousePos;
 
-          hoveredRow = $self.find('.ui-droppable-hover');
+          // Find the row being hovered
+          $self.find('tr').each(function() {
+            // Add proportions and offset data to the row (required by
+            // jQuery UI Droppable)
+            this.proportions = { width: this.offsetWidth, height: this.offsetHeight };
+            this.offset = $(this).offset();
+            
+            // Use the intersect function of jQuery UI Droppable to
+            // determine if this row is being hovered
+            var intersect = $.ui.intersect($.ui.ddmanager.current, this, 'pointer');
+            
+            // Assign hover class if this row is hovered
+            if (intersect) {
+              $(this).addClass(settings.hoverClass);
+            } else {
+              $(this).removeClass(settings.hoverClass);
+            }
+          });
+          
+          hoveredRow = $self.find('.' + settings.hoverClass);
 
           /**
            * Determine at what level the user wants to drop the node.
@@ -326,7 +347,9 @@ $('body').append('<div id="testarea"></div>');
           });
           targetLevel = hoveredLevel;
 
-debugOutput = 'positions for level: [';
+debugOutput = 'Target row: ' + (targetRow.index() + 1) + '<br /><br />';
+
+debugOutput += 'positions for level: [';
 $.each(data.dropPositionsForLevel, function(ix, val) {
   debugOutput += val + ', ';
 })
@@ -391,7 +414,9 @@ $('#testarea').html(debugOutput);
            */
           
           var $helper = $('<div class="nested-table-item-dragging">'
-                          + '<table class="nested-sortable"></table>'
+                          + '<table class="'
+                          + pluginName
+                          + '-dragging"></table>'
                           + '</div>')
                         .find('table')
                         .append($(e.target).closest('tr')
@@ -401,11 +426,6 @@ $('#testarea').html(debugOutput);
           
           return $helper;
         }
-      }, droppableConfig = {
-        tolerance:    'pointer',
-        activeClass:  'ui-droppable-active',
-        hoverClass:   'ui-droppable-hover',
-        drop:         function() {}
       };
       
       /**
@@ -415,7 +435,6 @@ $('#testarea').html(debugOutput);
       $self
       .find('tr')
       .draggable(draggableConfig)
-      .droppable(droppableConfig)
       .data(pluginName, true);
       
       // Init Draggable & Droppable on live elements
