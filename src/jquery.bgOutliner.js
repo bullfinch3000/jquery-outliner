@@ -15,7 +15,6 @@
    * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable,
    *               jQuery UI Droppable
    *
-   * TODO: Make sure the drop indicator accurately reflects the drop
    * TODO: Make the element to be used as draghandle a user setting
    * TODO: Make the droppable active and hover classes a user setting
    * TODO: Make sure the destroy method removes all data, event handlers
@@ -238,12 +237,12 @@
                         .find('tr:first .' + settings.expColIconClass)
                         .offset().left;
 
+      // Get the top
+      data.topPosition = $self.find('tr:first').offset().top;
+
       /**
        * Define settings for jQuery UI Draggable & Droppable
        */
-
-var debugOutput = '';
-$('body').append('<div id="testarea"></div>');
 
       var draggableConfig = {
         appendTo        : 'body',
@@ -283,12 +282,15 @@ $('body').append('<div id="testarea"></div>');
           $self.find('tr').each(function() {
             // Add proportions and offset data to the row (required by
             // jQuery UI Droppable)
-            this.proportions = { width: this.offsetWidth, height: this.offsetHeight };
+            this.proportions = {width: this.offsetWidth,
+                                height: this.offsetHeight};
             this.offset = $(this).offset();
             
             // Use the intersect function of jQuery UI Droppable to
             // determine if this row is being hovered
-            var intersect = $.ui.intersect($.ui.ddmanager.current, this, 'pointer');
+            var intersect = $.ui.intersect($.ui.ddmanager.current,
+                                            this,
+                                            'pointer');
             
             // Assign hover class if this row is hovered
             if (intersect) {
@@ -298,7 +300,7 @@ $('body').append('<div id="testarea"></div>');
             }
           });
           
-          hoveredRow = $self.find('.' + settings.hoverClass);
+          hoveredRow = $self.find('.' + settings.hoverClass + ':first');
 
           /**
            * Determine at what level the user wants to drop the node.
@@ -318,6 +320,7 @@ $('body').append('<div id="testarea"></div>');
           // than the target level.
           if (hoveredRow.length > 0) {
             hoveredRowLevel = $self.bgOutliner('getLevel', hoveredRow);
+            
             if (hoveredLevel > hoveredRowLevel + 1) {
               hoveredLevel = hoveredRowLevel + 1;
             }
@@ -325,14 +328,27 @@ $('body').append('<div id="testarea"></div>');
             hoveredLevel = 0;
           }
 
-          // Get droppable positions
-          data.dropPositionsForLevel =
-            $self.bgOutliner('getDropPositionsForLevel', hoveredLevel);
+          // Get invalid drop positions for the dragged node
           data.invalidDropPositions = 
             $self.bgOutliner('getInvalidDropPositions',
                               $(e.target).closest('tr'),
                               hoveredLevel);
+          
+          // If the hovered row is in the list of invalid positions, we
+          // must adjust the hovered level accordingly
+          if ((hoveredRow.index() + 1) in oc(data.invalidDropPositions)) {
+            hoveredLevel =
+              $self.bgOutliner('getLevel',
+                                $self.find('tr:eq('
+                                + data.invalidDropPositions[0]
+                                + ')'));
+          }
 
+          // Get valid drop positions for the hovered level
+          data.dropPositionsForLevel =
+            $self.bgOutliner('getDropPositionsForLevel', hoveredLevel);
+
+          // Subtract invalid positions from valid positions
           data.dropPositions =
             data.dropPositionsForLevel.filter(function(val, ix) {
                return data.invalidDropPositions.indexOf(val) == -1;
@@ -347,37 +363,16 @@ $('body').append('<div id="testarea"></div>');
           });
           targetLevel = hoveredLevel;
 
-debugOutput = 'Target row: ' + (targetRow.index() + 1) + '<br /><br />';
-
-debugOutput += 'positions for level: [';
-$.each(data.dropPositionsForLevel, function(ix, val) {
-  debugOutput += val + ', ';
-})
-debugOutput += ']<br />';
-
-debugOutput += 'invalid positions: [';
-$.each(data.invalidDropPositions, function(ix, val) {
-  debugOutput += val + ', ';
-})
-debugOutput += ']<br />';
-
-debugOutput += 'resulting positions: [';
-$.each(data.dropPositions, function(ix, val) {
-  debugOutput += val + ', ';
-})
-debugOutput += ']<br />';
-$('#testarea').html(debugOutput);
-
           /**
            * Determine target rows position, settings the top variable
            * to be the bottom of the target row and the left variable to
            * the left side of the instanced DOM element.
            */
 
-          if (targetRow.length > 0) {
+          if (targetRow.length > 0) {          
             targetPosition.top = parseInt(targetRow.offset().top
-                                      + targetRow.height()
-                                      - (data.dropIndicator.height()/2));
+                                  + targetRow.height()
+                                  - (data.dropIndicator.height()/2));
             targetPosition.left = $self.offset().left;
             
             // Show/Update drop indicator
@@ -386,6 +381,28 @@ $('#testarea').html(debugOutput);
                               targetLevel);
 
             // Store information about the target row in the data object
+            data.target = 'after';
+            data.targetRow = targetRow;
+            data.targetLevel = targetLevel;
+          } else if (thisMousePos.y < data.topPosition) {
+
+            /**
+             * If no target row is found, and if the current mouse
+             * position is above the instanced element, assume the user
+             * is trying to drop before the top root level node.
+             */ 
+
+            targetPosition.top = parseInt(data.topPosition
+                                  - (data.dropIndicator.height()/2));
+            targetPosition.left = $self.offset().left;
+            
+            // Show/Update drop indicator
+            $self.bgOutliner('showDropIndicator',
+                              targetPosition,
+                              targetLevel);
+
+            // Store information about the target row in the data object
+            data.target = 'before';
             data.targetRow = targetRow;
             data.targetLevel = targetLevel;
           }
@@ -396,7 +413,11 @@ $('#testarea').html(debugOutput);
            * Stop function
            */
           
+          // Hide the drop indicator
           $self.bgOutliner('hideDropIndicator');
+          
+          // Save the new structure
+          $self.bgOutliner('handleDrop');
         },
         helper: function(e, ui) {
 
@@ -1279,7 +1300,31 @@ $('#testarea').html(debugOutput);
       }
       
       return positions;
-    } // End methods.getInvalidDropPositions
+    }, // End methods.getInvalidDropPositions
+    
+    /**
+     * This method reads the target data stored in the instance data
+     * object and modifies the tree structure accordingly
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance
+     *
+     * Return:         A reference to the instance
+     */
+    
+    handleDrop: function() {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      
+      var data = $self.data(pluginName),
+          settings = data.settings;
+      
+      console.log(data.target, data.targetRow, data.targetLevel);
+      
+      return $self;
+    } // End methods.handleDrop
   }; // End methods
 
   /**
@@ -1353,6 +1398,19 @@ $('#testarea').html(debugOutput);
     
     return true;
   }; // End assertChildOf
+  
+  /**
+   * Utility function that checks for the existance of a value in an
+   * array
+   */
+  
+  var oc = function(a) {
+    var o = {};
+    for(var i=0;i<a.length;i++) {
+      o[a[i]]='';
+    }
+    return o;
+  }; // End oc
 })(jQuery);
 
 /**
