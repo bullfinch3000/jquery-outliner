@@ -239,6 +239,9 @@
        * Define settings for jQuery UI Draggable & Droppable
        */
 
+var debugOutput = '';
+$('body').append('<div id="testarea"></div>');
+
       var draggableConfig = {
         appendTo        : 'body',
         revert          : 'invalid',
@@ -289,7 +292,7 @@
             hoveredLevel = relativeDropPos/settings.indent;
           }
           hoveredLevel = parseInt(hoveredLevel);
-          
+
           // Make sure that the level is no more than one level higher
           // than the target level.
           if (hoveredRow.length > 0) {
@@ -300,13 +303,14 @@
           } else {
             hoveredLevel = 0;
           }
-          
+
           // Get droppable positions
           data.dropPositionsForLevel =
             $self.bgOutliner('getDropPositionsForLevel', hoveredLevel);
           data.invalidDropPositions = 
             $self.bgOutliner('getInvalidDropPositions',
-                              $(e.target).closest('tr'));
+                              $(e.target).closest('tr'),
+                              hoveredLevel);
 
           data.dropPositions =
             data.dropPositionsForLevel.filter(function(val, ix) {
@@ -321,7 +325,26 @@
             }
           });
           targetLevel = hoveredLevel;
-          
+
+debugOutput = 'positions for level: [';
+$.each(data.dropPositionsForLevel, function(ix, val) {
+  debugOutput += val + ', ';
+})
+debugOutput += ']<br />';
+
+debugOutput += 'invalid positions: [';
+$.each(data.invalidDropPositions, function(ix, val) {
+  debugOutput += val + ', ';
+})
+debugOutput += ']<br />';
+
+debugOutput += 'resulting positions: [';
+$.each(data.dropPositions, function(ix, val) {
+  debugOutput += val + ', ';
+})
+debugOutput += ']<br />';
+$('#testarea').html(debugOutput);
+
           /**
            * Determine target rows position, settings the top variable
            * to be the bottom of the target row and the left variable to
@@ -1202,14 +1225,15 @@
      * descendants to themselves.
      *
      * CONTRACT
-     * Expected input: A DOM element that is a plugin instance and a
-     *                 (non optional) table row that is a direct
-     *                 descendant to the supplied element.
+     * Expected input: A DOM element that is a plugin instance, a (non
+     *                 optional) table row that is a direct descendant
+     *                 to the supplied element and an integer
+     *                 representing a level.
      *
      * Return:         An array of invalid drop positions
      */
     
-    getInvalidDropPositions: function($node) {
+    getInvalidDropPositions: function($node, iLevel) {
       var $self = this;
       
       // Honor the contract
@@ -1218,14 +1242,22 @@
       
       var settings = $self.data(pluginName).settings;
       
-      var positions = [],
-          $family;
+      var $family,
+          nodeLevel,
+          positions = [];
       
       $family = $self.bgOutliner('getFamily', $node);
       
-      $.each($family, function() {
+      $.each($family, function() {      
         positions.push($(this).index() + 1);
       });
+      
+      nodeLevel = $self.bgOutliner('getLevel', $node);
+      while (iLevel < nodeLevel) {
+        positions.pop();
+      
+        iLevel++;
+      }
       
       return positions;
     } // End methods.getInvalidDropPositions

@@ -724,7 +724,7 @@
         // Create instance
         $('#outliner tbody').bgOutliner();
         
-        deepEqual($('#outliner tbody').bgOutliner('getInvalidDropPositions', $('#row1')), [5,6,7], 'List matched expectations');
+        deepEqual($('#outliner tbody').bgOutliner('getInvalidDropPositions', $('#row1'), $('#outliner tbody').bgOutliner('getLevel', $('#row1'))), [5,6,7], 'List matched expectations');
 
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
@@ -734,7 +734,7 @@
         // Create instance
         $('#outliner tbody').bgOutliner();
         
-        deepEqual($('#outliner tbody').bgOutliner('getInvalidDropPositions', $('#row2')), [3,4], 'List matched expectations');
+        deepEqual($('#outliner tbody').bgOutliner('getInvalidDropPositions', $('#row2'), $('#outliner tbody').bgOutliner('getLevel', $('#row2'))), [3,4], 'List matched expectations');
 
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
@@ -744,7 +744,7 @@
         // Create instance
         $('#outliner tbody').bgOutliner();
         
-        deepEqual($('#outliner tbody').bgOutliner('getInvalidDropPositions', $('#row11')), [2,3,4], 'List matched expectations');
+        deepEqual($('#outliner tbody').bgOutliner('getInvalidDropPositions', $('#row11'), $('#outliner tbody').bgOutliner('getLevel', $('#row11'))), [2,3,4], 'List matched expectations');
 
         // Destroy instance
         $('#outliner tbody').bgOutliner('destroy');
