@@ -302,8 +302,16 @@
           }
           
           // Get droppable positions
-          data.dropPositions =
+          data.dropPositionsForLevel =
             $self.bgOutliner('getDropPositionsForLevel', hoveredLevel);
+          data.invalidDropPositions = 
+            $self.bgOutliner('getInvalidDropPositions',
+                              $(e.target).closest('tr'));
+
+          data.dropPositions =
+            data.dropPositionsForLevel.filter(function(val, ix) {
+               return data.invalidDropPositions.indexOf(val) == -1;
+            });
 
           // Determine closest candidate for drop
           $.each(data.dropPositions, function(ix, pos) {
@@ -405,6 +413,7 @@
         // Add a node as child to the clicked node
         var childId = $self.bgOutliner('addNode',
                                         $(this).closest('tr'));
+        e.preventDefault();
       });
       
       $self
@@ -413,6 +422,7 @@
         // Remove node
         var childId = $self.bgOutliner('removeNode',
                                         $(this).closest('tr'));
+        e.preventDefault();
       });
 
       return $self;
@@ -1134,7 +1144,9 @@
      * Gets available drop position for the current level
      *
      * CONTRACT
-     * Expected input: A DOM element that is a plugin instance.
+     * Expected input: A DOM element that is a plugin instance and an
+     *                 integer representing the level to fetch positions
+     *                 for.
      *
      * Return:         An array of possible drop positions
      */
@@ -1183,6 +1195,40 @@
         return (a - b);
       });
     }, // End methods.getDropPositionsForLevel
+    
+    /**
+     * Gets a list of invalid drop positions for a given node. Using
+     * this method makes sure that no nodes can be dropped as
+     * descendants to themselves.
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         An array of invalid drop positions
+     */
+    
+    getInvalidDropPositions: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      var positions = [],
+          $family;
+      
+      $family = $self.bgOutliner('getFamily', $node);
+      
+      $.each($family, function() {
+        positions.push($(this).index() + 1);
+      });
+      
+      return positions;
+    } // End methods.getInvalidDropPositions
   }; // End methods
 
   /**
