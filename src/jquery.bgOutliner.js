@@ -6,7 +6,7 @@
    * Company: AGoodId
    * URL: http://www.agoodid.se
    * Version: Alpha 3
-   * Last edited: Jan 18 2011
+   * Last edited: Jan 19 2011
    * Size: -- KB (minified -- KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested
@@ -17,8 +17,6 @@
    *
    * TODO: Make sure the drop indicator accurately reflects the drop
    * TODO: Make the element to be used as draghandle a user setting
-   * TODO: Create prettier dialog boxes on faulty drops, maybe with
-   *       ui.dialog?
    */
 
   var pluginName = 'bgOutliner';
