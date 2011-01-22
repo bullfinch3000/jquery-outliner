@@ -800,7 +800,7 @@
       
       // Call the onAddNode callback function, if it is defined
       if ($.isFunction(settings.onAddNode)) {
-        settings.onAddNode.call(this);
+        settings.onAddNode.call(this, $child);
       }
       
       return $self;
@@ -849,8 +849,13 @@
         });
       }
 
+      // Call the onRemoveNode callback function, if it is defined
+      if ($.isFunction(settings.onRemoveNode)) {
+        settings.onRemoveNode.call(this, $node);
+      }
+      
       // Remove node
-      $node.remove();      
+      $node.remove();
 
       return $self;
     }, // End methods.removeNode
@@ -900,8 +905,7 @@
         $target.addClass(settings.hasChildrenClass);
         $self.bgOutliner('expandNode', $target);
       }
-
-      // Insert the elements
+      
       $.each($family, function() {
         $(this).insertAfter($self.find('tr:eq(' + targetIndex + ')'));
         $self.bgOutliner('setIndentation', $(this));
@@ -939,7 +943,45 @@
       
       var settings = $self.data(pluginName).settings;
       
-      var iTargetLevel = $self.bgOutliner('getLevel', $target);
+      var $family = $self.bgOutliner('getFamily', $node),
+          iTargetLevel = $self.bgOutliner('getLevel', $target),
+          iNodeLevel = $self.bgOutliner('getLevel', $node),
+          iNodeParent,
+          $parent;
+      
+      // Find parent node
+      $parent = (iInsertLevel == 0) ? null
+        : $target.add($target.prevAll()).filter('.'
+          + settings.levelClassPrefix
+          + (iInsertLevel - 1)).last();;
+        
+      // Set level and parent classes and set indentation
+      $node
+        .removeClass(settings.levelClassPrefix + iNodeLevel)
+        .addClass(settings.levelClassPrefix + iInsertLevel);
+      $self.bgOutliner('setIndentation', $node);
+        
+      $self.bgOutliner('setParent', $parent, $node);
+
+      if ($target.is('#' + $node.attr('id'))) {
+        $target = $target.prevAll().first();
+      }
+
+      if (sInsertPosition == 'before') {
+        $self.prepend($node);
+        iInsertPosition = 0;
+      } else {
+        $node.insertAfter($target);
+        iInsertPosition = $target.index();
+      }
+
+      $.each($family, function() {
+        $(this).insertAfter($self.find('tr:eq(' + iInsertPosition + ')'));
+        $self
+          .bgOutliner('setLevel', $(this))
+          .bgOutliner('setIndentation', $(this));
+        iInsertPosition = $(this).index();
+      });
       
       return $self;
     }, // End methods.insertAt
@@ -1087,7 +1129,6 @@
       
       // Honor contract
       assertInstanceOfBgOutliner($self);
-      assertChildOf($self, $parent);
       assertChildOf($self, $node);
       
       var settings = $self.data(pluginName).settings;
@@ -1107,12 +1148,43 @@
       $node.removeClass(parentClass);
       
       // Add the new parent class
-      if ($parent.length > 0) {
+      if ($parent != null) {
         $node.addClass(settings.childOfClassPrefix + $parent.attr('id'));
       }
       
       return $self;
     }, // End methods.setParent
+    
+    /**
+     * Method that sets the level class for a node
+     *
+     * Expected input: A DOM element that is a plugin instance, and a
+     *                 (non optional) table row that is a direct
+     *                 descendant to the supplied element.
+     *
+     * Return:         A reference to the instance.
+     */
+    
+    setLevel: function($node) {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+      assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
+      
+      var iCurrentLevel = $self.bgOutliner('getLevel', $node),
+          iParentKey = $self.bgOutliner('getParent', $node),
+          iNewLevel = $self.bgOutliner('getLevel', $('#' + settings.idPrefix + iParentKey)) + 1;
+      
+      // Change level classes
+      $node
+        .removeClass(settings.levelClassPrefix + iCurrentLevel)
+        .addClass(settings.levelClassPrefix + iNewLevel);
+
+      return $self;
+    }, // End methods.setLevel
     
     /**
      * Method that sets the indentation level for a node
