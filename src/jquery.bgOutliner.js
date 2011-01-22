@@ -22,6 +22,8 @@
    * TODO: Add methods expandAll and collapseAll.
    * TODO: Fix bug that shows an incorrect drop indicator when hovering
    *       below a collapsed node.
+   * TODO: Look into problem with dragging nodes as last child of
+   *       dynamic elements
    */
 
   var pluginName = 'bgOutliner';
