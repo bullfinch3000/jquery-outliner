@@ -895,7 +895,7 @@
       // Does the target node already have children?
       if ($target.hasClass(settings.hasChildrenClass)) {
         // Insert at top or bottom?
-        if (!settings.prepend) {
+        if (!settings.prepend) {        
           // Find the last descendant of the target node
           $targetFamily = $self.bgOutliner('getFamily', $target);
           $lastDescendant = $targetFamily[$targetFamily.length - 1];
@@ -905,7 +905,7 @@
         $target.addClass(settings.hasChildrenClass);
         $self.bgOutliner('expandNode', $target);
       }
-      
+
       $.each($family, function() {
         $(this).insertAfter($self.find('tr:eq(' + targetIndex + ')'));
         $self.bgOutliner('setIndentation', $(this));
@@ -948,12 +948,31 @@
           iNodeLevel = $self.bgOutliner('getLevel', $node),
           iNodeParent,
           $parent;
+          iSrcParent = $self.bgOutliner('getParent', $node);
+          $srcSiblings = $self.find('.' + settings.childOfClassPrefix
+            + settings.idPrefix
+            + iSrcParent);
+
+      // Check if the hasChildren class should be removed on the nodes
+      // parent element
+      if ($srcSiblings.length <= 1) {
+        $self
+        .find('#' + settings.idPrefix + iSrcParent)
+        .removeClass(settings.hasChildrenClass);
+      }
       
       // Find parent node
       $parent = (iInsertLevel == 0) ? null
         : $target.add($target.prevAll()).filter('.'
           + settings.levelClassPrefix
           + (iInsertLevel - 1)).last();;
+      
+      // Add hasChildren class to parent, if not already added
+      if ($parent != null &&
+        !$parent.hasClass(settings.hasChildrenClass)) {
+        $parent.addClass(settings.hasChildrenClass);
+        $self.bgOutliner('expandNode', $parent);
+      }
         
       // Set level and parent classes and set indentation
       $node
@@ -967,14 +986,17 @@
         $target = $target.prevAll().first();
       }
 
+      // Insert this node
       if (sInsertPosition == 'before') {
         $self.prepend($node);
         iInsertPosition = 0;
       } else {
         $node.insertAfter($target);
-        iInsertPosition = $target.index();
+        iInsertPosition = $target.index() + 1;
       }
 
+      // Insert all child nodes
+      $family.shift();
       $.each($family, function() {
         $(this).insertAfter($self.find('tr:eq(' + iInsertPosition + ')'));
         $self
