@@ -18,7 +18,6 @@
    * TODO: Make the element to be used as draghandle a user setting.
    * TODO: Make sure the destroy method removes all data, event handlers
    *       and draggables and droppables.
-   * TODO: Add methods expandAll and collapseAll.
    * TODO: Fix bug that shows an incorrect drop indicator when hovering
    *       below a collapsed node.
    * TODO: Look into problem with dragging nodes as last child of
