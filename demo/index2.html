@@ -6,6 +6,14 @@
 	<link rel="stylesheet" media="all" href="../css/bgNestedSortable.css" />
 </head>
 <body>
+  <!--Example outliner controls-->
+  <div id="outliner-controls">
+    <a href="#" class="expand-all">Expand all</a>
+    |
+    <a href="#" class="collapse-all">Collapse all</a>
+  </div>
+  <!--End example outliner controls-->
+
   <!--Example tree structure-->
 	<table id="outliner">
 		<thead>
@@ -139,6 +147,15 @@
     // <![CDATA[
     jQuery(function($) {
       $('#outliner tbody').bgOutliner();
+      
+      $('a.expand-all').bind('click', function(e) {
+        $('#outliner tbody').bgOutliner('expandAll');
+        e.preventDefault();
+      });
+      $('a.collapse-all').bind('click', function(e) {
+        $('#outliner tbody').bgOutliner('collapseAll');
+        e.preventDefault();
+      });
     });
     // ]]>
 	</script>

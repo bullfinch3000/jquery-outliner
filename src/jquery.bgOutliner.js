@@ -16,7 +16,6 @@
    *               jQuery UI Droppable
    *
    * TODO: Make the element to be used as draghandle a user setting.
-   * TODO: Make the droppable active and hover classes a user setting.
    * TODO: Make sure the destroy method removes all data, event handlers
    *       and draggables and droppables.
    * TODO: Add methods expandAll and collapseAll.
@@ -699,6 +698,57 @@
       
       return $self;
     }, // End methods.collapseNode
+
+    /**
+     * Expands all nodes
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+
+    expandAll: function() {
+      var $self = this;
+
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+
+      var settings = $self.data(pluginName).settings;
+
+      $self.find('tr.' + settings.hasChildrenClass).each(function() {
+        $self.bgOutliner('expandNode', $(this));
+      });
+
+      return $self;
+    }, // End methods.expandAll
+
+    /**
+     * Collapses all nodes
+     *
+     * CONTRACT
+     * Expected input: A DOM element that is a plugin instance.
+     *
+     * Return:         A reference to the instanced DOM element
+     */
+
+    collapseAll: function() {
+      var $self = this;
+      
+      // Honor the contract
+      assertInstanceOfBgOutliner($self);
+
+      var settings = $self.data(pluginName).settings;
+      
+      var $nodes = $self.find('tr.' + settings.hasChildrenClass)
+        .get().reverse();
+        
+      $.each($nodes, function() {
+        $self.bgOutliner('collapseNode', $(this));
+      });
+
+      return $self;
+    }, // End methods.collapseAll
 
     /**
      * Adds a new node to the instance. If a parent node is supplied the
