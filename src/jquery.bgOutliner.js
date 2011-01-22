@@ -15,7 +15,6 @@
    * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable,
    *               jQuery UI Droppable
    *
-   * TODO: Make the element to be used as draghandle a user setting.
    * TODO: Make sure the destroy method removes all data, event handlers
    *       and draggables and droppables.
    * TODO: Fix bug that shows an incorrect drop indicator when hovering
@@ -57,6 +56,7 @@
     'dataClass'             : 'nested-data',
     'dataCellClass'         : 'nested-data-cell',
     'dragAndDrop'           : true,
+    'dragHandle'            : false,
     'edit'                  : true,
     'expandCollapse'        : true,
     'expandedClass'         : 'expanded',
@@ -334,7 +334,7 @@
           // Get invalid drop positions for the dragged node
           data.invalidDropPositions = 
             $self.bgOutliner('getInvalidDropPositions',
-                              $(e.target).closest('tr'),
+                              $(e.target),
                               hoveredLevel);
           
           // If the hovered row is in the list of invalid positions, we
@@ -446,14 +446,17 @@
                           + '-dragging"></table>'
                           + '</div>')
                         .find('table')
-                        .append($(e.target).closest('tr')
-                                .clone()
-                                .removeClass($self.data(pluginName)
-                                              .settings.hoverClass));
+                        .append($(e.target).clone()
+                          .removeClass($self.data(pluginName)
+                            .settings.hoverClass));
           
           return $helper;
         }
       };
+      
+      if (settings.dragHandle != false) {
+        draggableConfig.handle = settings.dragHandle;
+      }
       
       /**
        * Initiate jQuery UI Draggable & Droppable
