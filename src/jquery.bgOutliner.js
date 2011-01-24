@@ -334,7 +334,7 @@
           // Get invalid drop positions for the dragged node
           data.invalidDropPositions = 
             $self.bgOutliner('getInvalidDropPositions',
-                              $(e.target),
+                              $(e.target).closest('tr'),
                               hoveredLevel);
           
           // If the hovered row is in the list of invalid positions, we
@@ -446,7 +446,8 @@
                           + '-dragging"></table>'
                           + '</div>')
                         .find('table')
-                        .append($(e.target).clone()
+                        .append($(e.target).closest('tr')
+                          .clone()
                           .removeClass($self.data(pluginName)
                             .settings.hoverClass));
           
