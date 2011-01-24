@@ -6,8 +6,8 @@
    * Company: AGoodId
    * URL: http://www.agoodid.se
    * Version: Alpha 4
-   * Last edited: Jan 21 2011
-   * Size: 46 KB (minified -- KB)
+   * Last edited: Jan 24 2011
+   * Size: 51 KB (minified -- KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested
    * structures presented in table form.
@@ -1041,9 +1041,10 @@
           + (iInsertLevel - 1)).last();;
       
       // Add hasChildren class to parent, if not already added
-      if ($parent != null &&
-        !$parent.hasClass(settings.hasChildrenClass)) {
-        $parent.addClass(settings.hasChildrenClass);
+      if ($parent != null) {
+        if (!$parent.hasClass(settings.hasChildrenClass)) {
+          $parent.addClass(settings.hasChildrenClass);
+        }
         $self.bgOutliner('expandNode', $parent);
       }
         
