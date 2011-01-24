@@ -418,6 +418,35 @@
             data.targetRow = $self.find('tr:first');
             data.targetLevel = targetLevel;
             data.droppedNode = $(e.target);
+          } else if (thisMousePos.y > data.topPosition) {
+
+            /**
+             * If no target row is found, and if the current mouse
+             * position is below the instanced element, assume the user
+             * is trying to drop as the last root level node
+             */
+
+            targetLevel = 0;
+            $targetRow = $self.find('tr:last');
+            
+            targetPosition.top = parseInt($self.find('tr:visible:last')
+                                    .offset().top
+                                  + $self.find('tr:visible:last')
+                                    .height()
+                                  - (data.dropIndicator.height()/2));
+            
+            targetPosition.left = $self.offset().left;
+            
+            // Show/Update drop indicator
+            $self.bgOutliner('showDropIndicator',
+                              targetPosition,
+                              targetLevel);
+
+            // Store information about the target row in the data object
+            data.target = 'after';
+            data.targetRow = $targetRow;
+            data.targetLevel = 0;
+            data.droppedNode = $(e.target);
           }
         },
         stop: function(e, ui) {
@@ -1238,7 +1267,8 @@
       if (-1 == iStartPos) {
         parentClass = false;
       } else {
-        parentClass = (-1 != iEndPos) ? parentClass.substring(iStartPos, iEndPos)
+        parentClass = (-1 != iEndPos) ? parentClass.substring(iStartPos,
+                                          iEndPos)
                                       : parentClass.substring(iStartPos);
       }
       $node.removeClass(parentClass);
@@ -1272,7 +1302,8 @@
       
       var iCurrentLevel = $self.bgOutliner('getLevel', $node),
           iParentKey = $self.bgOutliner('getParent', $node),
-          iNewLevel = $self.bgOutliner('getLevel', $('#' + settings.idPrefix + iParentKey)) + 1;
+          iNewLevel = $self.bgOutliner('getLevel',
+            $('#' + settings.idPrefix + iParentKey)) + 1;
       
       // Change level classes
       $node
@@ -1367,7 +1398,8 @@
       $self
       .data(pluginName)
       .dropIndicator
-      .css({position: 'absolute', top: tPosition.top, left: tPosition.left});
+      .css({position: 'absolute', top: tPosition.top,
+        left: tPosition.left});
       
       // Adjust width of col-indicator and row-indicator to match the
       // hovered level
@@ -1500,31 +1532,6 @@
       
       return positions;
     }, // End methods.getInvalidDropPositions
-    
-    /**
-     * This method reads the target data stored in the instance data
-     * object and modifies the tree structure accordingly
-     *
-     * CONTRACT
-     * Expected input: A DOM element that is a plugin instance
-     *
-     * Return:         A reference to the instance
-     */
-    /*
-    handleDrop: function() {
-      var $self = this;
-      
-      // Honor the contract
-      assertInstanceOfBgOutliner($self);
-      
-      var data = $self.data(pluginName),
-          settings = data.settings;
-      
-      console.log(data.target, data.targetRow, data.targetLevel);
-      
-      return $self;
-    } // End methods.handleDrop
-    */
   }; // End methods
 
   /**
@@ -1617,7 +1624,7 @@
       r[r.length] = input[i];
     }
     return r;
-  };
+  }; // End arrayUnique
   
   /**
    * Utility function that checks for the existance of a value in an
