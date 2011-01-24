@@ -2,11 +2,20 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><html>
-	<title>jquery.bgNestedSortable.js – Demo</title>
-	<link rel="stylesheet" media="all" href="../css/bgNestedSortable.css" />
+	<title>jquery.bgOutliner.js – Demo</title>
+	<link rel="stylesheet" media="all" href="../css/bgOutliner.css" />
 </head>
 <body>
-	<table id="nested-sortable">
+  <!--Example outliner controls-->
+  <div id="outliner-controls">
+    <a href="#" class="expand-all">Expand all</a>
+    |
+    <a href="#" class="collapse-all">Collapse all</a>
+  </div>
+  <!--End example outliner controls-->
+
+  <!--Example tree structure-->
+	<table id="outliner">
 		<thead>
 			<tr>
 				<th class="nested-data-cell">Titel</th>
@@ -14,12 +23,12 @@
 				<th>Publicerad</th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="outliner-tbody" style="background: transparent url(../images/outlinergrid.png) repeat-y -8px 0;">
 			<tr id="row1" class="has-children level0">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -33,8 +42,8 @@
 			<tr id="row2" class="child-of-row1 level1">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -48,8 +57,8 @@
 			<tr id="row3" class="child-of-row1 has-children level1">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -63,8 +72,8 @@
 			<tr id="row4" class="child-of-row3 level2">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -78,8 +87,8 @@
 			<tr id="row5" class="has-children child-of-row3 level2">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -93,8 +102,8 @@
 			<tr id="row6" class="has-children child-of-row5 level3">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -108,8 +117,8 @@
 			<tr id="row7" class="child-of-row6 level4">
 				<td class="nested-data-cell">
 					<span class="add-edit-icons">
-						<a href="#" title="Add child" class="add-child"><img src="../images/add.gif" alt="Add child" /></a>
-						<a href="#" title="Edit node"><img src="../images/edit.gif" alt="Edit node" /></a>
+						<a href="#" title="Add node" class="add-node"><img src="../images/add.gif" alt="Add child" /></a>
+						<a href="#" title="Remove node" class="remove-node"><img src="../images/trash.gif" alt="Remove node" /></a>
 					</span>
 					<span class="expand-collapse-icon"></span>
 					<form action="#" method="post">
@@ -122,61 +131,33 @@
 			</tr>
 		</tbody>
 	</table>
+	<!--End example tree structure-->
 
 	<!--JavaScript Below--> 
 	<script src="http://www.google.com/jsapi" type="text/javascript"></script>
 	<script type="text/javascript">
 	// <![CDATA[
-		google.load("jquery", "1.4.2");
-		google.load("jqueryui", "1.8.1");
+		google.load('jquery', '1.4.2');
+		google.load('jqueryui', '1.8.9', {uncompressed:true});
 	// ]]>
 	</script>
-	<script type="text/javascript" src="../src/jquery.bgNestedSortable.js"></script>
+	<script type="text/javascript" src="../src/jquery.bgOutliner.js"></script>
 	
 	<script type="text/javascript">
-	// <![CDATA[
-		jQuery(function($) {
-			$('#nested-sortable tbody').bgNestedSortable({
-				'addChildCallback' : function(id, parent) {				
-					var data = $('table.nested-sortable').find('tr#row' + id + 'form').serialize();
-
-					$.ajax({
-	  	  		url				: '../demo/appendChildCallback.html',
-    				data			: data,
-    				dataType	: 'json',
-    				method		: 'POST',
-	  	  		success		: function(response, status, xhr) {
-  		  			// If the call was successful
-	    				if ('200' === response.status.code) {
-    						// Set the ID to the one given by the callback
-    						$('table.nested-sortable')
-    							.find('tr#row' + id + ' input[name="row' + id + '[id]"]')
-    							.val(response.id);
-
-	 	   					// Animate background-color to indicate successful save
-  	  					$('table.nested-sortable')
-    							.find('tr#row' + id + ' td')
-    							.animate({backgroundColor: '#0f0'}, 200, null, function() {
-    								$(this).animate({backgroundColor: 'transparent'}, 500, null, function() {
-    									$(this).removeAttr('style');
-    								});
-    							});
-    					}
-	    			}
-	    		});
-    		},
-    		'appendCallback': function(family, target) {
-    			alert('append');
-    		},
-    		'insertBeforeCallback': function(family, target) {
-    			alert('insert before');
-    		},
-    		'insertAfterCallback': function(family, target) {
-    			alert('insert after');
-    		}
-			});
-		});
-	// ]]>
+    // <![CDATA[
+    jQuery(function($) {
+      $('#outliner tbody').bgOutliner();
+      
+      $('a.expand-all').bind('click', function(e) {
+        $('#outliner tbody').bgOutliner('expandAll');
+        e.preventDefault();
+      });
+      $('a.collapse-all').bind('click', function(e) {
+        $('#outliner tbody').bgOutliner('collapseAll');
+        e.preventDefault();
+      });
+    });
+    // ]]>
 	</script>
 </body>
 </html>
