@@ -14,11 +14,6 @@
    *
    * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable,
    *               jQuery UI Droppable
-   *
-   * TODO: Make sure the destroy method removes all data, event handlers
-   *       and draggables and droppables.
-   * TODO: Fix bug that shows an incorrect drop indicator when hovering
-   *       below a collapsed node.
    */
 
   var pluginName = 'bgOutliner';
@@ -428,13 +423,11 @@
 
             targetLevel = 0;
             $targetRow = $self.find('tr:last');
-            
             targetPosition.top = parseInt($self.find('tr:visible:last')
                                     .offset().top
                                   + $self.find('tr:visible:last')
                                     .height()
                                   - (data.dropIndicator.height()/2));
-            
             targetPosition.left = $self.offset().left;
             
             // Show/Update drop indicator
@@ -506,7 +499,7 @@
       .data(pluginName, true);
       
       // Init Draggable & Droppable on live elements
-      $self.find('tr').live('hover', function() {
+      $self.find('tr').live('hover.' + pluginName, function() {
         if ($(this).data(pluginName) != true) {
           $(this).data(pluginName, true);
           $(this).draggable(draggableConfig);
@@ -568,14 +561,31 @@
         // Unbind hover event
         $self.find('tr').die('hover.' + pluginName);
         
-        // Remove drop indicator, if it has been added
-        if (data.dropIndicator) {
-          data.dropIndicator.remove();
+        if (settings.edit = true) {
+          // Remove drop indicator, if it has been added
+          if (data.dropIndicator) {
+            data.dropIndicator.remove();
+          }
+        
+          // Remove draggable config and events
+          $self
+          .find('tr')
+          .draggable('destroy')
+          .removeData(pluginName);
+          
+          // Unbind click handlers
+          $self
+          .find('td.' + config.dataCellClass + ' .'
+            + config.removeClass)
+          .die('click.' + pluginName);
+          $self
+          .find('td.' + config.dataCellClass + ' .' + config.addClass)
+          .die('click.' + pluginName);
         }
 
         // Call the onDestroy callback function, if it is defined
-        if ($.isFunction($self.data(pluginName).settings.onDestroy)) {
-          $self.data(pluginName).settings.onDestroy.call(this);
+        if ($.isFunction(settings.onDestroy)) {
+          settings.onDestroy.call(this);
         }
 
         // Remove all data associated with the plugin
