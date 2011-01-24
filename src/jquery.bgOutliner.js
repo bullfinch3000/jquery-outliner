@@ -224,14 +224,15 @@
       data.dropIndicator.width($self.outerWidth());
       
       var hoveredLevel,
-          hoveredRow,
+          $hoveredRow,
           hoveredRowLevel,
           lastMousePos = { x: 0, y: 0 },
+          $lastRow,
           lastRun = 0,
           relativeDropPos,
           targetLevel,
           targetPosition = {top: 0, left: 0},
-          targetRow,
+          $targetRow,
           thisMousePos,
           thisRun = 0;
 
@@ -281,6 +282,14 @@
             return;
           }
           lastMousePos = thisMousePos;
+          
+          // Reset variables from last run
+          hoveredLevel = 0,
+          hoveredRowLevel = 0,
+          targetLevel = 0,
+          targetRowLevel = 0,
+          $hoveredRow = null,
+          $targetRow = null;
 
           // Find the row being hovered
           $self.find('tr').each(function() {
@@ -304,7 +313,7 @@
             }
           });
           
-          hoveredRow = $self.find('.' + settings.hoverClass + ':first');
+          $hoveredRow = $self.find('.' + settings.hoverClass + ':first');
 
           /**
            * Determine at what level the user wants to drop the node.
@@ -322,8 +331,8 @@
 
           // Make sure that the level is no more than one level higher
           // than the target level.
-          if (hoveredRow.length > 0) {
-            hoveredRowLevel = $self.bgOutliner('getLevel', hoveredRow);
+          if ($hoveredRow.length > 0) {
+            hoveredRowLevel = $self.bgOutliner('getLevel', $hoveredRow);
             
             if (hoveredLevel > hoveredRowLevel + 1) {
               hoveredLevel = hoveredRowLevel + 1;
@@ -340,7 +349,7 @@
           
           // If the hovered row is in the list of invalid positions, we
           // must adjust the hovered level accordingly
-          if ((hoveredRow.index() + 1) in oc(data.invalidDropPositions)) {
+          if (($hoveredRow.index() + 1) in oc(data.invalidDropPositions)) {
             hoveredLevel =
               $self.bgOutliner('getLevel',
                                 $self.find('tr:eq('
@@ -360,8 +369,8 @@
 
           // Determine closest candidate for drop
           $.each(data.dropPositions, function(ix, pos) {
-            if (hoveredRow.index() <= pos) {
-              targetRow = $self.find('tr:eq(' + (pos - 1) + ')');
+            if ($hoveredRow.index() == (pos - 1)) {
+              $targetRow = $self.find('tr:eq(' + (pos - 1) + ')');
               return false;
             }
           });
@@ -373,9 +382,9 @@
            * the left side of the instanced DOM element.
            */
 
-          if (targetRow.length > 0) {          
-            targetPosition.top = parseInt(targetRow.offset().top
-                                  + targetRow.height()
+          if ($targetRow != null && $targetRow.length > 0) {
+            targetPosition.top = parseInt($targetRow.offset().top
+                                  + $targetRow.height()
                                   - (data.dropIndicator.height()/2));
             targetPosition.left = $self.offset().left;
             
@@ -386,7 +395,7 @@
 
             // Store information about the target row in the data object
             data.target = 'after';
-            data.targetRow = targetRow;
+            data.targetRow = $targetRow;
             data.targetLevel = targetLevel;
             data.droppedNode = $(e.target);
           } else if (thisMousePos.y < data.topPosition) {
