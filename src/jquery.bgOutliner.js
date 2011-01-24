@@ -19,8 +19,6 @@
    *       and draggables and droppables.
    * TODO: Fix bug that shows an incorrect drop indicator when hovering
    *       below a collapsed node.
-   * TODO: Look into problem with dragging nodes as last child of
-   *       dynamic elements
    */
 
   var pluginName = 'bgOutliner';
@@ -613,9 +611,9 @@
      * recursively to toggle all children and grand-children.
      *
      * CONTRACT
-     * Expected input: A DOM element that is a plugin instance, and a
-     *                 table row that is a direct descendant to the
-     *                 supplied element.
+     * Expected input: A DOM element that is a plugin instance & a table
+     *                 row that is a direct descendant to the supplied
+     *                 element.
      *
      * Return:         A reference to the instanced DOM element
      */
@@ -628,8 +626,8 @@
       assertChildOf($self, $node);
 
       // Find already expanded children and store them
-      var sId = $node.attr('id');
-      var $expandedChildren = $self.find('.child-of-' + sId + '.'
+      var sId = $node.attr('id'),
+          $expandedChildren = $self.find('.child-of-' + sId + '.'
                                         + $self.data(pluginName)
                                           .settings.expandedClass);
 
@@ -753,7 +751,8 @@
 
       var settings = $self.data(pluginName).settings;
       
-      var $nodes = $self.find('tr.' + settings.hasChildrenClass)
+      var $nodes =
+        $self.find('tr.' + settings.hasChildrenClass + ':visible')
         .get().reverse();
         
       $.each($nodes, function() {
