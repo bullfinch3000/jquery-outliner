@@ -460,7 +460,7 @@
       
       test('Invoking addNode with an argument that is a direct child of an instance should return a reference to the instance', function() {
         // Create instance
-        $('#outliner tbody').bgOutliner();
+        $('#outliner tbody').bgOutliner({'addAsChild': true});
         
         ok($('#outliner tbody').bgOutliner('addNode', $('#row1')).is('#outliner tbody'), 'Reference to self was returned');
 
@@ -472,7 +472,7 @@
         expect(4);
       
         // Create instance
-        $('#outliner tbody').bgOutliner();
+        $('#outliner tbody').bgOutliner({'addAsChild': true});
       
         $('#outliner tbody').bgOutliner('addNode', $('#row1'));
         equal($('#outliner tbody').find('tr:eq(8)').attr('id'), $('#row9').attr('id'), 'The new node was inserted as last child of row 1');

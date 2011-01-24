@@ -26,7 +26,7 @@
   var pluginName = 'bgOutliner';
 
   var config = {
-    'addAsChild'            : true,
+    'addAsChild'            : false,
     'addClass'              : 'add-node',
     'childHtml'             : '<td class="%dataCellClass%">'
                               + '<span class="add-edit-icons">'
