@@ -146,7 +146,7 @@
 	<script type="text/javascript">
     // <![CDATA[
     jQuery(function($) {
-      $('#outliner tbody').bgOutliner();
+      $('#outliner tbody').bgOutliner({'addAsChild': false});
       
       $('a.expand-all').bind('click', function(e) {
         $('#outliner tbody').bgOutliner('expandAll');

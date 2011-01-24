@@ -26,6 +26,7 @@
   var pluginName = 'bgOutliner';
 
   var config = {
+    'addAsChild'            : true,
     'addClass'              : 'add-node',
     'childHtml'             : '<td class="%dataCellClass%">'
                               + '<span class="add-edit-icons">'
@@ -784,7 +785,16 @@
           sParentId;
       
       var settings = $self.data(pluginName).settings;
-      
+
+      // Determine whether to add the new node as a child or sibling to
+      // the parent node
+      if (settings.addAsChild == false) {
+        var iGrandParent = $self.bgOutliner('getParent', $parent);
+        $parent = (iGrandParent != null) ?
+          $self.find('#' + settings.idPrefix + iGrandParent)
+          : null;
+      }
+
       // Get parent info
       if ($parent) {
         // Expand the parent node
