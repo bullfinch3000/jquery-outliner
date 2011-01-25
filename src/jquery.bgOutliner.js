@@ -1541,7 +1541,7 @@
       }
       
       return positions;
-    }, // End methods.getInvalidDropPositions
+    } // End methods.getInvalidDropPositions
   }; // End methods
 
   /**
@@ -1606,7 +1606,8 @@
    */
   
   var assertChildOf = function($instance, $node) {  
-    if (!$node.parent().is('#' + $instance.attr('id'))) {
+    if ($node == undefined
+      || !$node.parent().is('#' + $instance.attr('id'))) {
       throw new Error('jQuery.'
                       + pluginName
                       + ' Error. Element is not child of instanced'
@@ -1649,3 +1650,35 @@
     return o;
   }; // End oc
 })(jQuery);
+
+/**
+ * Add ECMA262-5 Array methods if not supported natively
+ *
+ * Extends Array object with common methods if it they are not defined
+ * (needed for Internet Explorer compatibility)
+ *
+ * Source: http://stackoverflow.com/questions/2790001/
+ *  fixing-javascript-array-functions-in-internet-explorer
+ *  -indexof-foreach-etc
+ */
+
+if (!('filter' in Array.prototype)) {
+  Array.prototype.filter= function(filter, that /*opt*/) {
+    var other= [], v;
+    for (var i=0, n= this.length; i<n; i++)
+      if (i in this && filter.call(that, v= this[i], i, this))
+        other.push(v);
+    return other;
+  };
+}
+if (!('indexOf' in Array.prototype)) {
+  Array.prototype.indexOf= function(find, i /*opt*/) {
+    if (i===undefined) i= 0;
+    if (i<0) i+= this.length;
+    if (i<0) i= 0;
+    for (var n= this.length; i<n; i++)
+      if (i in this && this[i]===find)
+        return i;
+    return -1;
+  };
+}
