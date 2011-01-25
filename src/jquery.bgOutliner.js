@@ -226,6 +226,7 @@
           targetLevel,
           targetPosition = {top: 0, left: 0},
           $targetRow,
+          targetRowLevel,
           thisMousePos,
           thisRun = 0;
 
@@ -366,6 +367,7 @@
               $targetRow = $self.find('tr:eq(' + (pos - 1) + ')');
               return false;
             }
+            return;
           });
           targetLevel = hoveredLevel;
 
@@ -1056,11 +1058,12 @@
       var settings = $self.data(pluginName).settings;
       
       var $family = $self.bgOutliner('getFamily', $node),
+          iInsertPosition,
           iTargetLevel = $self.bgOutliner('getLevel', $target),
           iNodeLevel = $self.bgOutliner('getLevel', $node),
           iNodeParent,
-          $parent;
-          iSrcParent = $self.bgOutliner('getParent', $node);
+          $parent,
+          iSrcParent = $self.bgOutliner('getParent', $node),
           $srcSiblings = $self.find('.' + settings.childOfClassPrefix
             + settings.idPrefix
             + iSrcParent);
