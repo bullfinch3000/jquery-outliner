@@ -7,7 +7,7 @@
    * URL: http://www.agoodid.se
    * Version: Alpha 4
    * Last edited: Jan 24 2011
-   * Size: 51 KB (minified 14 KB)
+   * Size: 52 KB (minified and obfuscated 14 KB)
    *
    * This plugin controls expand/collapse and drag/drop of nested
    * structures presented in table form.

@@ -1,3 +1,16 @@
-Name: bgNestedSortable
-Author: Henrik Almer for AGoodId
-Email: henrik@agoodid.se
+Name: bgOutliner
+Author: Henrik Almér <henrik@agoodid.se>
+Company: AGoodId
+URL: http://www.agoodid.se
+
+This plugin controls expand/collapse and drag/drop of nested structures presented in table form.
+
+Dependencies:
+  jQuery,
+  jQuery UI Core,
+  jQuery UI Draggable,
+  jQuery UI Droppable
+
+Tested in:
+  Mac: Firefox, Safari and Chrome
+  Windows: Firefox, Internet Explorer 7 & 8 and Chrome
