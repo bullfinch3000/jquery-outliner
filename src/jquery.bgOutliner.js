@@ -561,7 +561,7 @@
         // Unbind hover event
         $self.find('tr').die('hover.' + pluginName);
         
-        if (settings.edit = true) {
+        if (settings.edit == true) {
           // Remove drop indicator, if it has been added
           if (data.dropIndicator) {
             data.dropIndicator.remove();
