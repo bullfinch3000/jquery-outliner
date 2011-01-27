@@ -1400,7 +1400,8 @@
 
       var settings = $self.data(pluginName).settings;
       
-      var baseIndent = $self.data(pluginName).leftColumn,
+      var baseIndent = $self.data(pluginName).leftColumn
+            - $self.offset().left,
           colIndicatorWidth = baseIndent
             + (settings.indent * (iLevel));
 
