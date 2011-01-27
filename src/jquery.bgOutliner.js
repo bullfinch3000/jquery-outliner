@@ -235,6 +235,10 @@
       data.leftColumn = $self
                         .find('tr:first .' + settings.expColIconClass)
                         .offset().left;
+      // Get the width of the expand/collapse icon
+      data.iconSize = $self
+                        .find('tr:first .' + settings.expColIconClass)
+                        .width();
 
       // Get the top
       data.topPosition = $self.find('tr:first').offset().top;
@@ -1401,7 +1405,8 @@
       var settings = $self.data(pluginName).settings;
       
       var baseIndent = $self.data(pluginName).leftColumn
-            - $self.offset().left,
+            - $self.offset().left
+            + ($self.data(pluginName).iconSize/2),
           colIndicatorWidth = baseIndent
             + (settings.indent * (iLevel));
 
