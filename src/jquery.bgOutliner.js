@@ -347,7 +347,8 @@
           
           // If the hovered row is in the list of invalid positions, we
           // must adjust the hovered level accordingly
-          if (($hoveredRow.index() + 1) in oc(data.invalidDropPositions)) {
+          if (data.invalidDropPositions
+            .indexOf($hoveredRow.index() + 1) !== -1) {
             hoveredLevel =
               $self.bgOutliner('getLevel',
                                 $self.find('tr:eq('
@@ -1625,19 +1626,6 @@
     
     return true;
   }; // End assertChildOf
-  
-  /**
-   * Utility function that checks for the existance of a value in an
-   * array
-   */
-  
-  var oc = function(a) {
-    var o = {};
-    for(var i=0;i<a.length;i++) {
-      o[a[i]]='';
-    }
-    return o;
-  }; // End oc
 })(jQuery);
 
 /**
