@@ -1504,7 +1504,7 @@
         }
       });
 
-      return arrayUnique(positions).sort(function(a, b) {
+      return positions.unique().sort(function(a, b) {
         return (a - b);
       });
     }, // End methods.getDropPositionsForLevel
@@ -1627,26 +1627,6 @@
   }; // End assertChildOf
   
   /**
-   * Utility function that allows removing of duplicates in an array
-   *
-   * Source: http://www.martienus.com/code/
-   *         javascript-remove-duplicates-from-array.html
-   */
-  
-  var arrayUnique = function(input) {
-    var r = new Array();
-    o:for(var i = 0, n = input.length; i < n; i++) {
-      for(var x = 0, y = r.length; x < y; x++) {
-        if(r[x]==input[i]) {
-          continue o;
-        }
-      }
-      r[r.length] = input[i];
-    }
-    return r;
-  }; // End arrayUnique
-  
-  /**
    * Utility function that checks for the existance of a value in an
    * array
    */
@@ -1672,7 +1652,7 @@
  */
 
 if (!('filter' in Array.prototype)) {
-  Array.prototype.filter= function(filter, that /*opt*/) {
+  Array.prototype.filter = function(filter, that /*opt*/) {
     var other= [], v;
     for (var i=0, n= this.length; i<n; i++)
       if (i in this && filter.call(that, v= this[i], i, this))
@@ -1681,7 +1661,7 @@ if (!('filter' in Array.prototype)) {
   };
 }
 if (!('indexOf' in Array.prototype)) {
-  Array.prototype.indexOf= function(find, i /*opt*/) {
+  Array.prototype.indexOf = function(find, i /*opt*/) {
     if (i===undefined) i= 0;
     if (i<0) i+= this.length;
     if (i<0) i= 0;
@@ -1689,5 +1669,27 @@ if (!('indexOf' in Array.prototype)) {
       if (i in this && this[i]===find)
         return i;
     return -1;
+  };
+}
+
+/**
+ * Utility function that allows removing of duplicates in an array
+ *
+ * Source: http://www.martienus.com/code/
+ *         javascript-remove-duplicates-from-array.html
+ */
+
+if (!('unique' in Array.prototype)) {
+  Array.prototype.unique = function() {
+    var r = new Array();
+    o:for(var i = 0, n = this.length; i < n; i++) {
+      for(var x = 0, y = r.length; x < y; x++) {
+        if(r[x]==this[i]) {
+          continue o;
+        }
+      }
+      r[r.length] = this[i];
+    }
+    return r;
   };
 }
