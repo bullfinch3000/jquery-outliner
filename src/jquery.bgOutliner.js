@@ -1,21 +1,20 @@
+/**
+ * Name: bgOutliner
+ * Author: Henrik Almér <henrik@agoodid.se>
+ * Company: AGoodId
+ * URL: http://www.agoodid.se
+ * Version: Alpha 4
+ * Last edited: Jan 24 2011
+ * Size: 52 KB (minified and obfuscated 14 KB)
+ *
+ * This plugin controls expand/collapse and drag/drop of nested
+ * structures presented in table form.
+ *
+ * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable,
+ *               jQuery UI Droppable
+ */
+
 (function($) {
-
-  /**
-   * Name: bgOutliner
-   * Author: Henrik Almér <henrik@agoodid.se>
-   * Company: AGoodId
-   * URL: http://www.agoodid.se
-   * Version: Alpha 4
-   * Last edited: Jan 24 2011
-   * Size: 52 KB (minified and obfuscated 14 KB)
-   *
-   * This plugin controls expand/collapse and drag/drop of nested
-   * structures presented in table form.
-   *
-   * Dependencies: jQuery, jQueryUI Core, jQuery UI Draggable,
-   *               jQuery UI Droppable
-   */
-
   var pluginName = 'bgOutliner';
 
   var config = {
@@ -75,6 +74,54 @@
     'removeClass'           : 'remove-node',
     'tolerance'             : 1
   }; // End config
+  
+  /**
+   * Private methods
+   */
+
+  /**
+   * This function is used to control that the supplied DOM element is
+   * an instance of the plugin. If not it throws an error.
+   *
+   * CONTRACT
+   * Expected input: A reference to a DOM object
+   *
+   * Return:         True on success. Throws error otherwise.
+   */
+
+  var assertInstanceOfBgOutliner = function($instance) {
+    if (!$instance.data(pluginName)) {
+      throw new Error('jQuery.'
+                      + pluginName
+                      + ' Instance Error. Element is not an instance'
+                      + ' of jQuery.'
+                      + pluginName);
+    }
+    
+    return true;
+  }; // End assertInstanceOfBgOutliner
+  
+  /**
+   * This function is used to check if an element is the direct child of
+   * another element.
+   *
+   * CONTRACT
+   * Expected input: A reference to a DOM object and a potential child
+   *
+   * Return:         True on success. Throws error otherwise.
+   */
+  
+  var assertChildOf = function($instance, $node) {  
+    if ($node === undefined
+      || !$node.parent().is('#' + $instance.attr('id'))) {
+      throw new Error('jQuery.'
+                      + pluginName
+                      + ' Error. Element is not child of instanced'
+                      + ' element');
+    }
+    
+    return true;
+  }; // End assertChildOf
 
   /**
    * Public methods
@@ -123,8 +170,9 @@
         });
 
         // Update settings
-        if (settings) $.extend($self.data(pluginName).settings,
-                                settings);
+        if (settings) {
+          $.extend($self.data(pluginName).settings, settings);
+        }
 
         settings = $self.data(pluginName).settings;
 
@@ -164,7 +212,7 @@
         });
         
         // Do further init setups for editing of nodes, if edit is true
-        if (settings.edit == true) {
+        if (settings.edit === true) {
           $self.bgOutliner('initEdit');
         }
 
@@ -220,7 +268,7 @@
           $hoveredRow,
           hoveredRowLevel,
           lastMousePos = { x: 0, y: 0 },
-          $lastRow,
+
           lastRun = 0,
           relativeDropPos,
           targetLevel,
@@ -274,19 +322,19 @@
 
           // Check if mouse position has changed
           thisMousePos = { x: e.pageX, y: e.pageY };
-          if (lastMousePos.x == thisMousePos.x
+          if (lastMousePos.x === thisMousePos.x
               &&
-              lastMousePos.y == thisMousePos.y ) {
+              lastMousePos.y === thisMousePos.y ) {
             return;
           }
           lastMousePos = thisMousePos;
           
           // Reset variables from last run
-          hoveredLevel = 0,
-          hoveredRowLevel = 0,
-          targetLevel = 0,
-          targetRowLevel = 0,
-          $hoveredRow = null,
+          hoveredLevel = 0;
+          hoveredRowLevel = 0;
+          targetLevel = 0;
+          targetRowLevel = 0;
+          $hoveredRow = null;
           $targetRow = null;
 
           // Find the row being hovered
@@ -325,7 +373,7 @@
           } else {
             hoveredLevel = relativeDropPos/settings.indent;
           }
-          hoveredLevel = parseInt(hoveredLevel);
+          hoveredLevel = parseInt(hoveredLevel, 10);
 
           // Make sure that the level is no more than one level higher
           // than the target level.
@@ -363,12 +411,12 @@
           // Subtract invalid positions from valid positions
           data.dropPositions =
             data.dropPositionsForLevel.filter(function(val, ix) {
-               return data.invalidDropPositions.indexOf(val) == -1;
+               return data.invalidDropPositions.indexOf(val) === -1;
             });
 
           // Determine closest candidate for drop
           $.each(data.dropPositions, function(ix, pos) {
-            if ($hoveredRow.index() == (pos - 1)) {
+            if ($hoveredRow.index() === (pos - 1)) {
               $targetRow = $self.find('tr:eq(' + (pos - 1) + ')');
               return false;
             }
@@ -382,10 +430,10 @@
            * the left side of the instanced DOM element.
            */
 
-          if ($targetRow != null && $targetRow.length > 0) {
+          if ($targetRow !== null && $targetRow.length > 0) {
             targetPosition.top = parseInt($targetRow.offset().top
                                   + $targetRow.height()
-                                  - (data.dropIndicator.height()/2));
+                                  - (data.dropIndicator.height()/2),10);
             targetPosition.left = $self.offset().left;
             
             // Show/Update drop indicator
@@ -407,7 +455,7 @@
              */ 
 
             targetPosition.top = parseInt(data.topPosition
-                                  - (data.dropIndicator.height()/2));
+                                  - (data.dropIndicator.height()/2),10);
             targetPosition.left = $self.offset().left;
             
             // Show/Update drop indicator
@@ -434,7 +482,7 @@
                                     .offset().top
                                   + $self.find('tr:visible:last')
                                     .height()
-                                  - (data.dropIndicator.height()/2));
+                                  - (data.dropIndicator.height()/2),10);
             targetPosition.left = $self.offset().left;
             
             // Show/Update drop indicator
@@ -492,7 +540,7 @@
         }
       };
       
-      if (settings.dragHandle != false) {
+      if (settings.dragHandle !== false) {
         draggableConfig.handle = settings.dragHandle;
       }
       
@@ -507,7 +555,7 @@
       
       // Init Draggable & Droppable on live elements
       $self.find('tr').live('hover.' + pluginName, function() {
-        if ($(this).data(pluginName) != true) {
+        if ($(this).data(pluginName) !== true) {
           $(this).data(pluginName, true);
           $(this).draggable(draggableConfig);
         }
@@ -521,8 +569,7 @@
       .find('td.' + config.dataCellClass + ' .' + config.addClass)
       .live('click.' + pluginName, function(e) {        
         // Add a node as child to the clicked node
-        var childId = $self.bgOutliner('addNode',
-                                        $(this).closest('tr'));
+        $self.bgOutliner('addNode', $(this).closest('tr'));
         e.preventDefault();
       });
       
@@ -530,8 +577,7 @@
       .find('td.' + config.dataCellClass + ' .' + config.removeClass)
       .live('click.' + pluginName, function(e) {        
         // Remove node
-        var childId = $self.bgOutliner('removeNode',
-                                        $(this).closest('tr'));
+        $self.bgOutliner('removeNode', $(this).closest('tr'));
         e.preventDefault();
       });
 
@@ -568,7 +614,7 @@
         // Unbind hover event
         $self.find('tr').die('hover.' + pluginName);
         
-        if (settings.edit == true) {
+        if (settings.edit === true) {
           // Remove drop indicator, if it has been added
           if (data.dropIndicator) {
             data.dropIndicator.remove();
@@ -616,8 +662,9 @@
         assertInstanceOfBgOutliner($self);
         
         // Update settings
-        if (settings) $.extend($self.data(pluginName).settings,
-                                settings);
+        if (settings) {
+          $.extend($self.data(pluginName).settings, settings);
+        }
       });
     },
     
@@ -842,9 +889,9 @@
 
       // Determine whether to add the new node as a child or sibling to
       // the parent node
-      if (settings.addAsChild == false) {
+      if (settings.addAsChild === false) {
         var iGrandParent = $self.bgOutliner('getParent', $parent);
-        $parent = (iGrandParent != null) ?
+        $parent = (iGrandParent !== null) ?
           $self.find('#' + settings.idPrefix + iGrandParent)
           : null;
       }
@@ -866,7 +913,7 @@
       iChildKey = 0;
       $self.find('tr').each(function() {
         iCurKey = parseInt($(this).attr('id')
-                    .substring(settings.idPrefix.length));
+                    .substring(settings.idPrefix.length),10);
         iChildKey = (iChildKey < iCurKey) ? iCurKey : iChildKey;
       });
       iChildKey++;
@@ -889,7 +936,7 @@
       sChildRow = '<tr id="'
                   + sChildId
                   + '" class="';
-      if (sParentId != null) {
+      if (sParentId !== null) {
         sChildRow = sChildRow
                     + settings.childOfClassPrefix
                     + sParentId
@@ -1064,9 +1111,7 @@
       
       var $family = $self.bgOutliner('getFamily', $node),
           iInsertPosition,
-          iTargetLevel = $self.bgOutliner('getLevel', $target),
           iNodeLevel = $self.bgOutliner('getLevel', $node),
-          iNodeParent,
           $parent,
           iSrcParent = $self.bgOutliner('getParent', $node),
           $srcSiblings = $self.find('.' + settings.childOfClassPrefix
@@ -1082,13 +1127,13 @@
       }
       
       // Find parent node
-      $parent = (iInsertLevel == 0) ? null
+      $parent = (iInsertLevel === 0) ? null
         : $target.add($target.prevAll()).filter('.'
           + settings.levelClassPrefix
-          + (iInsertLevel - 1)).last();;
+          + (iInsertLevel - 1)).last();
       
       // Add hasChildren class to parent, if not already added
-      if ($parent != null) {
+      if ($parent !== null) {
         if (!$parent.hasClass(settings.hasChildrenClass)) {
           $parent.addClass(settings.hasChildrenClass);
         }
@@ -1108,7 +1153,7 @@
       }
 
       // Insert this node
-      if (sInsertPosition == 'before') {
+      if (sInsertPosition === 'before') {
         $self.prepend($node);
         iInsertPosition = 0;
       } else {
@@ -1167,7 +1212,7 @@
         }
       });
       
-      return $family
+      return $family;
     }, // End methods.getFamily
 
     /**
@@ -1198,15 +1243,15 @@
       
       // Extract the key indicating the parent from the nodes class
       sClass = $node.attr('class');
-      if (sClass.indexOf(settings.childOfClassPrefix) != -1) {
+      if (sClass.indexOf(settings.childOfClassPrefix) !== -1) {
         iStartPos = sClass.indexOf(settings.childOfClassPrefix)
                       + settings.childOfClassPrefix.length
                       + settings.idPrefix.length;
         iEndPos = sClass.indexOf(' ', iStartPos);
         
-        iKey = (iEndPos != -1) ? parseInt(sClass.substring(iStartPos,
-                                                           iEndPos))
-                               : parseInt(sClass.substring(iStartPos));
+        iKey = (iEndPos !== -1)
+          ? parseInt(sClass.substring(iStartPos, iEndPos), 10)
+          : parseInt(sClass.substring(iStartPos), 10);
       } else {
         iKey = null;
       }
@@ -1238,7 +1283,7 @@
           sLevelClass,
           settings;
       
-      var settings = $self.data(pluginName).settings;
+      settings = $self.data(pluginName).settings;
       
       // Parse level class
       sLevelClass = $node.attr('class');
@@ -1247,11 +1292,9 @@
                                         .length;
       iEndPos = sLevelClass.indexOf(' ', iStartPos);
 
-      iLevel = (-1 != iEndPos) ? parseInt(sLevelClass
-                                            .substring(iStartPos,
-                                                        iEndPos))
-                               : parseInt(sLevelClass
-                                            .substring(iStartPos));
+      iLevel = (-1 !== iEndPos)
+        ? parseInt(sLevelClass.substring(iStartPos, iEndPos), 10)
+        : parseInt(sLevelClass.substring(iStartPos), 10);
 
       return iLevel;
     }, // End methods.getLevel
@@ -1282,17 +1325,17 @@
       var iStartPos = parentClass.indexOf(settings.childOfClassPrefix);
       var iEndPos = parentClass.indexOf(' ', iStartPos);
 
-      if (-1 == iStartPos) {
+      if (-1 === iStartPos) {
         parentClass = false;
       } else {
-        parentClass = (-1 != iEndPos) ? parentClass.substring(iStartPos,
-                                          iEndPos)
-                                      : parentClass.substring(iStartPos);
+        parentClass = (-1 !== iEndPos)
+          ? parentClass.substring(iStartPos,iEndPos)
+          : parentClass.substring(iStartPos);
       }
       $node.removeClass(parentClass);
       
       // Add the new parent class
-      if ($parent != null) {
+      if ($parent !== null) {
         $node.addClass(settings.childOfClassPrefix + $parent.attr('id'));
       }
       
@@ -1531,8 +1574,6 @@
       assertInstanceOfBgOutliner($self);
       assertChildOf($self, $node);
       
-      var settings = $self.data(pluginName).settings;
-      
       var $family,
           nodeLevel,
           positions = [];
@@ -1576,57 +1617,7 @@
                       + ' does not exist on jQuery.' + pluginName);
     }
   }; // End $.fn.bgOutliner
-
-
-
-  /*** PRIVATE METHODS ***/
-
-
-
-  /**
-   * This function is used to control that the supplied DOM element is
-   * an instance of the plugin. If not it throws an error.
-   *
-   * CONTRACT
-   * Expected input: A reference to a DOM object
-   *
-   * Return:         True on success. Throws error otherwise.
-   */
-
-  var assertInstanceOfBgOutliner = function($instance) {
-    if (!$instance.data(pluginName)) {
-      throw new Error('jQuery.'
-                      + pluginName
-                      + ' Instance Error. Element is not an instance'
-                      + ' of jQuery.'
-                      + pluginName);
-    }
-    
-    return true;
-  }; // End assertInstanceOfBgOutliner
-  
-  /**
-   * This function is used to check if an element is the direct child of
-   * another element.
-   *
-   * CONTRACT
-   * Expected input: A reference to a DOM object and a potential child
-   *
-   * Return:         True on success. Throws error otherwise.
-   */
-  
-  var assertChildOf = function($instance, $node) {  
-    if ($node == undefined
-      || !$node.parent().is('#' + $instance.attr('id'))) {
-      throw new Error('jQuery.'
-                      + pluginName
-                      + ' Error. Element is not child of instanced'
-                      + ' element');
-    }
-    
-    return true;
-  }; // End assertChildOf
-})(jQuery);
+}(jQuery));
 
 /**
  * Add ECMA262-5 Array methods if not supported natively
@@ -1641,21 +1632,26 @@
 
 if (!('filter' in Array.prototype)) {
   Array.prototype.filter = function(filter, that /*opt*/) {
-    var other= [], v;
-    for (var i=0, n= this.length; i<n; i++)
-      if (i in this && filter.call(that, v= this[i], i, this))
+    var other= [], i, v, n;
+    for (i=0, n= this.length; i<n; i++) {
+      if (i in this && filter.call(that, v= this[i], i, this)) {
         other.push(v);
+      }
+    }
     return other;
   };
 }
 if (!('indexOf' in Array.prototype)) {
   Array.prototype.indexOf = function(find, i /*opt*/) {
-    if (i===undefined) i= 0;
-    if (i<0) i+= this.length;
-    if (i<0) i= 0;
-    for (var n= this.length; i<n; i++)
-      if (i in this && this[i]===find)
+    if (i===undefined) { i= 0; }
+    if (i<0) { i+= this.length; }
+    if (i<0) { i= 0; }
+    var n;
+    for (n= this.length; i<n; i++) {
+      if (i in this && this[i]===find) {
         return i;
+      }
+    }
     return -1;
   };
 }
@@ -1669,11 +1665,11 @@ if (!('indexOf' in Array.prototype)) {
 
 if (!('unique' in Array.prototype)) {
   Array.prototype.unique = function() {
-    var r = new Array();
-    o:for(var i = 0, n = this.length; i < n; i++) {
-      for(var x = 0, y = r.length; x < y; x++) {
-        if(r[x]==this[i]) {
-          continue o;
+    var r = [], i, x, n, y;
+    o:for(i = 0, n = this.length; i < n; i++) {
+      for(x = 0, y = r.length; x < y; x++) {
+        if(r[x]===this[i]) {
+          return;
         }
       }
       r[r.length] = this[i];
