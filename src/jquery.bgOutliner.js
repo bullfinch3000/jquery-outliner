@@ -195,7 +195,7 @@
 
         // Assign click handlers to expand/collapse-links
         $self
-        .find('tr.' + settings.hasChildrenClass + ' td.'
+        .find('tr.' + settings.hasChildrenClass + ' .'
               + settings.dataCellClass + ' .'
               + settings.expColIconClass)
         .live('click.' + pluginName, function(e) {
@@ -566,7 +566,7 @@
        */
       
       $self
-      .find('td.' + config.dataCellClass + ' .' + config.addClass)
+      .find('.' + config.dataCellClass + ' .' + config.addClass)
       .live('click.' + pluginName, function(e) {        
         // Add a node as child to the clicked node
         $self.bgOutliner('addNode', $(this).closest('tr'));
@@ -574,7 +574,7 @@
       });
       
       $self
-      .find('td.' + config.dataCellClass + ' .' + config.removeClass)
+      .find('.' + config.dataCellClass + ' .' + config.removeClass)
       .live('click.' + pluginName, function(e) {        
         // Remove node
         $self.bgOutliner('removeNode', $(this).closest('tr'));
@@ -606,7 +606,7 @@
 
         // Unbind live click handlers from expand/collapse links
         $self
-        .find('tr.' + settings.hasChildrenClass + ' td.'
+        .find('tr.' + settings.hasChildrenClass + ' .'
               + settings.dataCellClass + ' .'
               + settings.expColIconClass)
         .die('click.' + pluginName);
@@ -628,11 +628,11 @@
           
           // Unbind click handlers
           $self
-          .find('td.' + config.dataCellClass + ' .'
+          .find('.' + config.dataCellClass + ' .'
             + config.removeClass)
           .die('click.' + pluginName);
           $self
-          .find('td.' + config.dataCellClass + ' .' + config.addClass)
+          .find('.' + config.dataCellClass + ' .' + config.addClass)
           .die('click.' + pluginName);
         }
 
