@@ -114,6 +114,7 @@
   var assertChildOf = function($instance, $node) {  
     if ($node === undefined
       || !$node.parent().is('#' + $instance.attr('id'))) {
+      
       throw new Error('jQuery.'
                       + pluginName
                       + ' Error. Element is not child of instanced'
@@ -179,7 +180,8 @@
         // Hide all children on init, if initHidden is true
         var initClass;
         if (settings.initHidden) {
-          $self.find("tr[class*='child-of-']").hide();
+          $self.find("tr[class*='" + settings.childOfClassPrefix + "']")
+            .hide();
           initClass= settings.collapsedClass;
         } else {
           initClass = settings.expandedClass;
@@ -717,10 +719,14 @@
       // Honor the contract
       assertInstanceOfBgOutliner($self);
       assertChildOf($self, $node);
+      
+      var settings = $self.data(pluginName).settings;
 
       // Find already expanded children and store them
       var sId = $node.attr('id'),
-          $expandedChildren = $self.find('.child-of-' + sId + '.'
+          $expandedChildren = $self.find('.'
+                                        + settings.childOfClassPrefix
+                                        + sId + '.'
                                         + $self.data(pluginName)
                                           .settings.expandedClass);
 
@@ -732,7 +738,8 @@
       }
       
       // Toggle all direct children
-      this.find('.child-of-' + sId).each(function() {
+      this.find('.' + settings.childOfClassPrefix + sId)
+        .each(function() {
         $(this).toggle();
       });
       
