@@ -973,7 +973,7 @@
       
       // Call the onAddNode callback function, if it is defined
       if ($.isFunction(settings.onAddNode)) {
-        settings.onAddNode.call(this, $child);
+        settings.onAddNode.call(this, $child, $parent);
       }
       
       return $self;
@@ -1086,7 +1086,7 @@
       });
     
       if ($.isFunction(settings.onAppend)) {
-        settings.onAppend.call(this);
+        settings.onAppend.call(this, $node, $target);
       }
     }, // End methods.appendNode
 
@@ -1177,6 +1177,10 @@
           .bgOutliner('setIndentation', $(this));
         iInsertPosition = $(this).index();
       });
+      
+      if ($.isFunction(settings.onDrop)) {
+        settings.onDrop.call(this, $node, $parent, iInsertPosition);
+      }
       
       return $self;
     }, // End methods.insertAt
